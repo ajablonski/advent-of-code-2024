@@ -33,7 +33,9 @@ fn main() {
     match args.subcommand {
         Subcommand::Fetch => {
             println!("Fetching...");
-            let session_token = std::env::var("SESSION_TOKEN").unwrap();
+            let session_token = std::fs::read_to_string("session_id_file.txt")
+                .or(std::env::var("SESSION_TOKEN"))
+                .unwrap();
 
             for problem_number in 1..(MAX_PROBLEM + 1) {
                 if let Ok(body) = reqwest::blocking::Client::new()
@@ -45,13 +47,13 @@ fn main() {
                 {
                     let t = body.text();
                     let file = File::create(format!("data/{problem_number}.txt"));
-                    
+
                     match (t, file) {
                         (Ok(tt), Ok(mut f)) => {
                             let _ = f.write_all(tt.as_bytes());
-                        },
+                        }
                         (Err(e), _) => println!("Error in AOC Response: {e}"),
-                        (Ok(_), Err(e)) => println!("Error in file opening: {e}")
+                        (Ok(_), Err(e)) => println!("Error in file opening: {e}"),
                     }
                 }
             }
