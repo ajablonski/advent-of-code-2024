@@ -3,50 +3,48 @@ use std::collections::HashMap;
 
 pub struct Problem1 {}
 
+pub const PROBLEM1: Problem1 = Problem1 {};
+
 impl Problem for Problem1 {
     fn part1(&self, input: &str) -> u128 {
-        let mut left_list = Vec::new();
-        let mut right_list = Vec::new();
+        let (mut left_list, mut right_list): (Vec<u128>, Vec<u128>) = input
+            .lines()
+            .map(|line| {
+                let parts: Vec<u128> = line.split(" ").flat_map(|s| s.parse::<u128>()).collect();
 
-        input.lines().for_each(|line| {
-            let parts: Vec<&str> = line.split(" ").filter(|s| !s.is_empty()).collect();
-
-            left_list.push(parts[0].parse::<u128>().unwrap());
-            right_list.push(parts[1].parse::<u128>().unwrap());
-        });
+                (parts[0], parts[1])
+            })
+            .unzip();
 
         left_list.sort();
         right_list.sort();
 
         left_list
-            .iter()
+            .into_iter()
             .zip(right_list)
-            .fold(0, |acc, (a, b)| acc + b.abs_diff(*a))
+            .fold(0, |acc, (a, b)| acc + b.abs_diff(a))
     }
 
     fn part2(&self, input: &str) -> u128 {
-        let mut left_list: Vec<u128> = Vec::new();
         let mut right_counts: HashMap<u128, u128> = HashMap::new();
 
-        input.lines().for_each(|line| {
-            let parts: Vec<u128> = line
-                .split(" ")
-                .filter(|s| !s.is_empty())
-                .flat_map(|s| (*s).parse::<u128>())
-                .collect();
+        input
+            .lines()
+            .map(|line| {
+                let parts: Vec<u128> = line.split(" ").flat_map(|s| s.parse::<u128>()).collect();
 
-            left_list.push(parts[0]);
-            right_counts
-                .entry(parts[1])
-                .and_modify(|c| *c += 1)
-                .or_insert(1);
-        });
+                right_counts
+                    .entry(parts[1])
+                    .and_modify(|c| *c += 1)
+                    .or_insert(1);
 
-        left_list
-            .iter()
-            .fold(0u128, |acc, x| match right_counts.get(&x) {
+                parts[0]
+            })
+            .collect::<Vec<u128>>()
+            .into_iter()
+            .fold(0u128, |acc, num| match right_counts.get(&num) {
                 None => acc,
-                Some(i) => acc + (*x * *i)
+                Some(count) => acc + count * num,
             })
     }
 }
@@ -117,5 +115,3 @@ mod tests {
         assert_eq!(P.part2(sample_input), 7 * 2 * 2);
     }
 }
-
-pub const PROBLEM1: Problem1 = Problem1 {};
