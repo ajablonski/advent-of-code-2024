@@ -74,7 +74,7 @@ mod tests {
     }
 
     #[test]
-    fn test_should_calculate_similarity_score_for_part2_using_sample_data() {
+    fn should_should_calculate_similarity_score_for_part2_using_sample_data() {
         let sample_input = "\
         3   4\n\
         4   3\n\

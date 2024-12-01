@@ -4,6 +4,8 @@ pub struct Problem2 {}
 
 impl Problem for Problem2 {}
 
+pub const PROBLEM2: Problem2 = Problem2 {};
+
 #[cfg(test)]
 mod tests {
     use super::*;

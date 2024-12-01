@@ -1,4 +1,6 @@
 use advent_of_code_2024::problem1::PROBLEM1;
+use advent_of_code_2024::problem2::PROBLEM2;
+use advent_of_code_2024::problem3::PROBLEM3;
 use advent_of_code_2024::Problem;
 use clap::{Parser, Subcommand as ClapSubcommand};
 use std::collections::HashMap;
@@ -29,6 +31,8 @@ fn main() {
     let mut problem_lookup: HashMap<u32, &dyn Problem> = HashMap::new();
 
     problem_lookup.insert(1, &PROBLEM1);
+    problem_lookup.insert(2, &PROBLEM2);
+    problem_lookup.insert(3, &PROBLEM3);
 
     match args.subcommand {
         Subcommand::Fetch => {
