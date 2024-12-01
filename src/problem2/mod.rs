@@ -1,13 +1,13 @@
 use crate::Problem;
 
-pub struct Problem1 {}
+pub struct Problem2 {}
 
-impl Problem for Problem1 {}
+impl Problem for Problem2 {}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    const P: Problem1 = Problem1 {};
+    const P: Problem2 = Problem2 {};
 
     #[test]
     fn test_part1() {
