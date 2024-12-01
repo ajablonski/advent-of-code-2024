@@ -1,4 +1,5 @@
-use advent_of_code_2024::{problem1::Problem1, Problem};
+use advent_of_code_2024::problem1::PROBLEM1;
+use advent_of_code_2024::Problem;
 use clap::{Parser, Subcommand as ClapSubcommand};
 use std::collections::HashMap;
 
@@ -8,7 +9,7 @@ enum Subcommand {
     Fetch,
 
     #[command(arg_required_else_help = true)]
-    Solve { problem: u32 },
+    Solve { problem: u32 }
 }
 
 #[derive(Parser, Debug)]
@@ -23,7 +24,7 @@ fn main() {
     let args = Args::parse();
     let mut problem_lookup: HashMap<u32, &dyn Problem> = HashMap::new();
 
-    problem_lookup.insert(1, &Problem1 {});
+    problem_lookup.insert(1, &PROBLEM1 );
 
     match args.subcommand {
         Subcommand::Fetch => {

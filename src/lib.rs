@@ -1,9 +1,9 @@
 pub trait Problem {
-    fn part1(&self, _input: &str) -> u32 {
+    fn part1(&self, _input: &str) -> u128 {
         0
     }
 
-    fn part2(&self, _input: &str) -> u32 {
+    fn part2(&self, _input: &str) -> u128 {
         0
     }
 }
