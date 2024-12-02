@@ -5,7 +5,7 @@ pub struct Problem1 {}
 
 pub const PROBLEM1: Problem1 = Problem1 {};
 
-impl Problem for Problem1 {
+impl Problem<u128> for Problem1 {
     fn part1(&self, input: &str) -> u128 {
         let (mut left_list, mut right_list): (Vec<u128>, Vec<u128>) = input
             .lines()

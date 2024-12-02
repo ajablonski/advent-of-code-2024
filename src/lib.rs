@@ -1,9 +1,9 @@
-pub trait Problem {
-    fn part1(&self, _input: &str) -> u128 {
+pub trait Problem<T> {
+    fn part1(&self, _input: &str) -> T {
         0
     }
 
-    fn part2(&self, _input: &str) -> u128 {
+    fn part2(&self, _input: &str) -> T {
         0
     }
 }

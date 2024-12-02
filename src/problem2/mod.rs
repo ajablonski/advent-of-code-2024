@@ -10,7 +10,7 @@ enum ReportType {
     Unsafe,
 }
 
-impl Problem for Problem2 {
+impl Problem<u128> for Problem2 {
     fn part1(&self, input: &str) -> u128 {
         input
             .lines()

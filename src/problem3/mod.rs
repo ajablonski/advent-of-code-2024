@@ -2,7 +2,7 @@ use crate::Problem;
 
 pub struct Problem3 {}
 
-impl Problem for Problem3 {}
+impl Problem<u128> for Problem3 {}
 
 pub const PROBLEM3: Problem3 = Problem3 {};
 
