@@ -1,6 +1,7 @@
 use advent_of_code_2024::problem1::PROBLEM1;
 use advent_of_code_2024::problem2::PROBLEM2;
 use advent_of_code_2024::problem3::PROBLEM3;
+use advent_of_code_2024::problem4::PROBLEM4;
 use advent_of_code_2024::Problem;
 use chrono::{TimeZone, Utc};
 use clap::{Parser, Subcommand as ClapSubcommand};
@@ -34,6 +35,7 @@ fn main() {
     problem_lookup.insert(1, &PROBLEM1);
     problem_lookup.insert(2, &PROBLEM2);
     problem_lookup.insert(3, &PROBLEM3);
+    problem_lookup.insert(4, &PROBLEM4);
 
     match args.subcommand {
         Subcommand::Fetch => {
