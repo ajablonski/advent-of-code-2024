@@ -1,10 +1,10 @@
 pub trait Problem<T> {
     fn part1(&self, _input: &str) -> T {
-        0
+        todo!()
     }
 
     fn part2(&self, _input: &str) -> T {
-        0
+        todo!()
     }
 }
 

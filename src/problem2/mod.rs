@@ -12,78 +12,81 @@ enum ReportType {
 
 impl Problem<u128> for Problem2 {
     fn part1(&self, input: &str) -> u128 {
-        input
-            .lines()
-            .filter(|l| {
-                self.is_safe(
-                    &l.split(" ").map(|n| n.parse::<i8>().unwrap()).collect::<Vec<i8>>()[..],
-                    false,
-                )
-            })
+        self.parse(input)
+            .iter()
+            .filter(|l| self.is_safe(l))
             .count() as u128
     }
 
     fn part2(&self, input: &str) -> u128 {
-        input
-            .lines()
-            .filter(|l| {
-                let ints = &*l.split(" ").map(|n| n.parse::<i8>().unwrap()).collect::<Vec<i8>>();
-
-                self.is_safe(ints, true)
-            })
+        self.parse(input)
+            .iter()
+            .filter(|l| self.is_safe_with_bad_level(l))
             .count() as u128
     }
 }
+
 impl Problem2 {
-    pub(crate) fn is_safe(&self, report: &[i8], tolerate_bad_level: bool) -> bool {
-        if tolerate_bad_level {
-            let mut slice_options: Vec<Vec<i8>> = Vec::new();
+    fn is_safe_with_bad_level(&self, report: &[i8]) -> bool {
+        let mut slice_options: Vec<Vec<i8>> = Vec::new();
 
-            slice_options.push(report.to_vec());
+        slice_options.push(report.to_vec());
 
-            for i in 0..report.len() {
-                let other_possibility = [&report[0..i], &report[i + 1..]].concat();
-                slice_options.push(other_possibility)
-            }
-
-            slice_options.iter().any(|option| self.is_safe(option, false))
-        } else {
-            report
-                .iter()
-                .fold((ReportType::Unknown, None), |(r, last), w| match last {
-                    Some(n) => {
-                        let difference = w - n;
-
-                        match r {
-                            ReportType::Unknown => {
-                                if difference > 0 && difference <= 3 {
-                                    (ReportType::Increasing, Some(w))
-                                } else if difference < 0 && difference >= -3 {
-                                    (ReportType::Decreasing, Some(w))
-                                } else {
-                                    (ReportType::Unsafe, Some(w))
-                                }
-                            }
-                            ReportType::Increasing => {
-                                if difference > 0 && difference <= 3 {
-                                    (ReportType::Increasing, Some(w))
-                                } else {
-                                    (ReportType::Unsafe, Some(w))
-                                }
-                            }
-                            ReportType::Decreasing => {
-                                if difference < 0 && difference >= -3 {
-                                    (ReportType::Decreasing, Some(w))
-                                } else {
-                                    (ReportType::Unsafe, Some(w))
-                                }
-                            }
-                            ReportType::Unsafe => (ReportType::Unsafe, Some(w)),
-                        }
-                    }
-                    None => (ReportType::Unknown, Some(w)),
-                }).0 != ReportType::Unsafe
+        for i in 0..report.len() {
+            let other_possibility = [&report[0..i], &report[i + 1..]].concat();
+            slice_options.push(other_possibility)
         }
+
+        slice_options
+            .iter()
+            .any(|option| self.is_safe(option))
+    }
+
+    fn is_safe(&self, report: &[i8]) -> bool {
+        report
+            .iter()
+            .fold((ReportType::Unknown, None), |(r, last), w| match last {
+                Some(n) => {
+                    let difference = w - n;
+
+                    match r {
+                        ReportType::Unknown => {
+                            if difference > 0 && difference <= 3 {
+                                (ReportType::Increasing, Some(w))
+                            } else if difference < 0 && difference >= -3 {
+                                (ReportType::Decreasing, Some(w))
+                            } else {
+                                (ReportType::Unsafe, Some(w))
+                            }
+                        }
+                        ReportType::Increasing => {
+                            if difference > 0 && difference <= 3 {
+                                (ReportType::Increasing, Some(w))
+                            } else {
+                                (ReportType::Unsafe, Some(w))
+                            }
+                        }
+                        ReportType::Decreasing => {
+                            if difference < 0 && difference >= -3 {
+                                (ReportType::Decreasing, Some(w))
+                            } else {
+                                (ReportType::Unsafe, Some(w))
+                            }
+                        }
+                        ReportType::Unsafe => (ReportType::Unsafe, Some(w)),
+                    }
+                }
+                None => (ReportType::Unknown, Some(w)),
+            })
+            .0
+            != ReportType::Unsafe
+    }
+
+    fn parse(&self, input: &str) -> Vec<Vec<i8>> {
+        input
+            .lines()
+            .map(|l| l.split(" ").map(|n| n.parse::<i8>().unwrap()).collect())
+            .collect()
     }
 }
 
@@ -110,47 +113,47 @@ mod tests {
 
     #[test]
     fn is_safe_should_allow_increasing_small_interval_report() {
-        assert!(P.is_safe(&[1, 2, 5, 7, 8], false))
+        assert!(P.is_safe(&[1, 2, 5, 7, 8]))
     }
 
     #[test]
     fn is_safe_should_allow_increasing_small_interval_report_with_1_error_when_tolerated() {
-        assert!(P.is_safe(&[9, 2, 5, 7, 8], true));
-        assert!(P.is_safe(&[1, 9, 4, 7, 8], true));
-        assert!(P.is_safe(&[1, 2, 9, 5, 8], true));
-        assert!(P.is_safe(&[1, 2, 5, 9, 8], true));
-        assert!(P.is_safe(&[1, 2, 5, 7, 15], true));
-        assert!(P.is_safe(&[4, 2, 5, 7, 9], true))
+        assert!(P.is_safe_with_bad_level(&[9, 2, 5, 7, 8]));
+        assert!(P.is_safe_with_bad_level(&[1, 9, 4, 7, 8]));
+        assert!(P.is_safe_with_bad_level(&[1, 2, 9, 5, 8]));
+        assert!(P.is_safe_with_bad_level(&[1, 2, 5, 9, 8]));
+        assert!(P.is_safe_with_bad_level(&[1, 2, 5, 7, 15]));
+        assert!(P.is_safe_with_bad_level(&[4, 2, 5, 7, 9]))
     }
 
     #[test]
     fn is_safe_should_allow_decreasing_small_interval_report() {
-        assert!(P.is_safe(&[8, 7, 6, 3, 1], false))
+        assert!(P.is_safe(&[8, 7, 6, 3, 1]))
     }
 
     #[test]
     fn is_safe_should_allow_decreasing_small_interval_report_with_1_error_when_tolerated() {
-        assert!(P.is_safe(&[15, 7, 6, 3, 1], true));
-        assert!(P.is_safe(&[9, 15, 6, 3, 1], true));
-        assert!(P.is_safe(&[9, 7, 15, 4, 2], true));
-        assert!(P.is_safe(&[9, 7, 6, 15, 4], true));
-        assert!(P.is_safe(&[9, 7, 6, 3, 15], true));
-        assert!(P.is_safe(&[6, 7, 6, 3, 1], true))
+        assert!(P.is_safe_with_bad_level(&[15, 7, 6, 3, 1]));
+        assert!(P.is_safe_with_bad_level(&[9, 15, 6, 3, 1]));
+        assert!(P.is_safe_with_bad_level(&[9, 7, 15, 4, 2]));
+        assert!(P.is_safe_with_bad_level(&[9, 7, 6, 15, 4]));
+        assert!(P.is_safe_with_bad_level(&[9, 7, 6, 3, 15]));
+        assert!(P.is_safe_with_bad_level(&[6, 7, 6, 3, 1]))
     }
 
     #[test]
     fn is_safe_should_disallow_decreasing_too_big_interval() {
-        assert!(!P.is_safe(&[8, 7, 6, 2, 1], false))
+        assert!(!P.is_safe(&[8, 7, 6, 2, 1]))
     }
 
     #[test]
     fn is_safe_should_disallow_increasing_too_big_interval() {
-        assert!(!P.is_safe(&[1, 2, 6, 7, 8], false))
+        assert!(!P.is_safe(&[1, 2, 6, 7, 8]))
     }
 
     #[test]
     fn is_safe_should_disallow_non_monotonic_intervals() {
-        assert!(!P.is_safe(&[1, 2, 0, 4, 5], false))
+        assert!(!P.is_safe(&[1, 2, 0, 4, 5]))
     }
 
     #[test]

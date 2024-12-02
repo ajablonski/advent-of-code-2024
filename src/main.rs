@@ -30,7 +30,7 @@ const MAX_PROBLEM: u32 = 25;
 
 fn main() {
     let args = Args::parse();
-    let mut problem_lookup: HashMap<u32, &dyn Problem> = HashMap::new();
+    let mut problem_lookup: HashMap<u32, &dyn Problem<_>> = HashMap::new();
 
     problem_lookup.insert(1, &PROBLEM1);
     problem_lookup.insert(2, &PROBLEM2);
