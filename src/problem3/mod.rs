@@ -12,11 +12,13 @@ mod tests {
     const P: Problem3 = Problem3 {};
 
     #[test]
+    #[should_panic]
     fn test_part1() {
         assert_eq!(P.part1(""), 0);
     }
 
     #[test]
+    #[should_panic]
     fn test_part2() {
         assert_eq!(P.part2(""), 0);
     }
