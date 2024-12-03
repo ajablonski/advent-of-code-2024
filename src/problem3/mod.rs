@@ -1,5 +1,6 @@
 use regex::Regex;
 use crate::Problem;
+use crate::problem3::ProgramState::{Disabled, Enabled};
 
 pub struct Problem3 {}
 
@@ -23,8 +24,33 @@ impl Problem<u128> for Problem3 {
     }
 
     fn part2(&self, input: &str) -> u128 {
-        0
+        let instruction_re = Regex::new(r"mul\((\d+),(\d+)\)|do\(\)|don't\(\)").unwrap();
+
+        instruction_re
+            .captures_iter(input)
+            .fold((Enabled, 0u128), |(program_state, total), c| {
+                match (c.get(0).unwrap().as_str(), &program_state) {
+                    ("do()", _) => {
+                        (Enabled, total)
+                    },
+                    ("don't()", _) => {
+                        (Disabled, total)
+                    },
+                    (_, Enabled) => {
+                        match (c.get(1).unwrap().as_str().parse::<u32>(), c.get(2).unwrap().as_str().parse::<u32>()) {
+                            (Ok(l), Ok(r)) => (program_state, total + (l * r) as u128),
+                            _ => panic!("Unable to parse numbers {c:?}")
+                        }
+                    },
+                    (_, Disabled) => (program_state, total)
+                }
+            }).1
     }
+}
+
+enum ProgramState {
+    Enabled,
+    Disabled
 }
 
 pub const PROBLEM3: Problem3 = Problem3 {};
@@ -40,8 +66,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn test_part2() {
-        assert_eq!(P.part2(""), 0);
+    fn should_solve_part_2_example() {
+        assert_eq!(P.part2("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"), 48);
     }
 }
