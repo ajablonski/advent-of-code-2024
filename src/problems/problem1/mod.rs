@@ -1,11 +1,10 @@
-use crate::{Event, Problem};
+use crate::Event;
 use std::collections::HashMap;
 use std::sync::mpsc::Sender;
+use crate::problems::Problem;
 
 #[derive(Clone)]
 pub struct Problem1 {}
-
-pub const PROBLEM1: Problem1 = Problem1 {};
 
 impl Problem<u128> for Problem1 {
     fn part1(&self, _input: &str, _tx: Sender<Event>) -> u128 {

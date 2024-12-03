@@ -1,15 +1,13 @@
-use crate::Problem;
+use crate::problems::Problem;
 
 pub struct Problem5 {}
 
 impl Problem<u128> for Problem5 {}
 
-pub const PROBLEM5: Problem5 = Problem5 {};
-
 #[cfg(test)]
 mod tests {
-    use std::sync::mpsc;
     use super::*;
+    use std::sync::mpsc;
     const P: Problem5 = Problem5 {};
 
     #[test]

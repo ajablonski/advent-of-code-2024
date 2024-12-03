@@ -1,7 +1,8 @@
 use std::sync::mpsc::Sender;
 use regex::Regex;
-use crate::{Event, Problem};
-use crate::problem3::ProgramState::{Disabled, Enabled};
+use crate::Event;
+use crate::problems::problem3::ProgramState::{Disabled, Enabled};
+use crate::problems::Problem;
 
 #[derive(Clone)]
 pub struct Problem3 {}
@@ -55,8 +56,6 @@ enum ProgramState {
     Enabled,
     Disabled
 }
-
-pub const PROBLEM3: Problem3 = Problem3 {};
 
 #[cfg(test)]
 mod tests {

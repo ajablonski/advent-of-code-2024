@@ -1,6 +1,7 @@
 use crate::Event::UpdatePart1Result;
-use crate::{Event, Problem};
+use crate::Event;
 use std::sync::mpsc::Sender;
+use crate::problems::Problem;
 
 pub struct Problem2 {
 }
@@ -100,10 +101,6 @@ impl Problem2 {
             .lines()
             .map(|l| l.split(" ").map(|n| n.parse::<i8>().unwrap()).collect())
             .collect()
-    }
-
-    pub(crate) fn new() -> Self {
-        Problem2 { }
     }
 }
 

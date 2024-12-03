@@ -1,4 +1,4 @@
-use crate::Problem;
+use crate::problems::Problem;
 
 
 #[derive(Clone)]
@@ -7,8 +7,6 @@ pub struct Problem4 {}
 
 impl Problem<u128> for Problem4 {
 }
-
-pub const PROBLEM4: Problem4 = Problem4 {};
 
 #[cfg(test)]
 mod tests {
