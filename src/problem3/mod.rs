@@ -1,11 +1,14 @@
+use std::sync::mpsc::Sender;
 use regex::Regex;
-use crate::Problem;
+use crate::{Event, Problem};
 use crate::problem3::ProgramState::{Disabled, Enabled};
 
+#[derive(Clone)]
 pub struct Problem3 {}
 
 impl Problem<u128> for Problem3 {
-    fn part1(&self, input: &str) -> u128 {
+
+    fn part1(&self, input: &str, _tx: Sender<Event>) -> u128 {
         let instruction_re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
 
         instruction_re
@@ -23,7 +26,7 @@ impl Problem<u128> for Problem3 {
             .sum()
     }
 
-    fn part2(&self, input: &str) -> u128 {
+    fn part2(&self, input: &str, _tx: Sender<Event>) -> u128 {
         let instruction_re = Regex::new(r"mul\((\d+),(\d+)\)|do\(\)|don't\(\)").unwrap();
 
         instruction_re
@@ -57,16 +60,17 @@ pub const PROBLEM3: Problem3 = Problem3 {};
 
 #[cfg(test)]
 mod tests {
+    use std::sync::mpsc;
     use super::*;
     const P: Problem3 = Problem3 {};
 
     #[test]
     fn should_solve_part_1_example() {
-        assert_eq!(P.part1("xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"), 161);
+        assert_eq!(P.part1("xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))", mpsc::channel().0), 161);
     }
 
     #[test]
     fn should_solve_part_2_example() {
-        assert_eq!(P.part2("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"), 48);
+        assert_eq!(P.part2("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))", mpsc::channel().0), 48);
     }
 }

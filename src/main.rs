@@ -1,11 +1,13 @@
 use clap::{Parser, Subcommand as ClapSubcommand};
+use std::error::Error;
+
 #[derive(Debug, ClapSubcommand)]
 enum Subcommand {
     #[command()]
     Fetch,
 
     #[command(arg_required_else_help = true)]
-    Solve { problem: u32 },
+    Solve { problem: usize },
 }
 
 #[derive(Parser, Debug)]
@@ -16,13 +18,13 @@ struct Args {
     subcommand: Subcommand,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     match args.subcommand {
-        Subcommand::Fetch => advent_of_code_2024::fetch_data(),
+        Subcommand::Fetch => Ok(advent_of_code_2024::fetch_data()),
         Subcommand::Solve {
             problem: problem_number,
-        } => advent_of_code_2024::solve(&problem_number),
+        } => advent_of_code_2024::solve(problem_number),
     }
 }

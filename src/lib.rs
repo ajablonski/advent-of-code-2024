@@ -1,18 +1,27 @@
-use crate::problem1::PROBLEM1;
-use crate::problem2::PROBLEM2;
-use crate::problem3::PROBLEM3;
-use crate::problem4::PROBLEM4;
+use crate::problem1::Problem1;
+use crate::problem2::Problem2;
+use crate::problem3::Problem3;
+use crate::problem4::Problem4;
 use chrono::{TimeZone, Utc};
-use std::collections::HashMap;
+use crossterm::event;
+use ratatui::backend::Backend;
+use ratatui::layout::{Constraint, Layout};
+use ratatui::widgets::Paragraph;
+use ratatui::{Frame, Terminal, TerminalOptions, Viewport};
+use std::error::Error;
 use std::fs::File;
 use std::io::Write;
+use std::sync::mpsc;
+use std::sync::mpsc::Sender;
+use std::thread;
+use std::time::{Duration, Instant};
 
 pub trait Problem<T> {
-    fn part1(&self, _input: &str) -> T {
+    fn part1(&self, _input: &str, _tx: Sender<Event>) -> T {
         todo!()
     }
 
-    fn part2(&self, _input: &str) -> T {
+    fn part2(&self, _input: &str, _tx: Sender<Event>) -> T {
         todo!()
     }
 }
@@ -45,24 +54,38 @@ pub mod problem9;
 
 const MAX_PROBLEM: u32 = 25;
 
-pub fn solve(problem_number: &u32) {
-    let mut problem_lookup: HashMap<u32, &dyn Problem<_>> = HashMap::new();
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
-    problem_lookup.insert(1, &PROBLEM1);
-    problem_lookup.insert(2, &PROBLEM2);
-    problem_lookup.insert(3, &PROBLEM3);
-    problem_lookup.insert(4, &PROBLEM4);
+pub fn solve(problem_number: usize) -> Result<()> {
+    let (tx, rx) = mpsc::channel();
 
-    if let Some(problem) = problem_lookup.get(&problem_number) {
-        let input = std::fs::read_to_string(format!("data/{problem_number}.txt")).unwrap();
+    let mut problem_lookup: Vec<Box<dyn Problem<u128> + Send>> = vec![
+        Box::new(Problem1 {}),
+        Box::new(Problem2::new()),
+        Box::new(Problem3 {}),
+        Box::new(Problem4 {}),
+    ];
 
-        let part_1_result = (*problem).part1(input.as_str());
-        let part_2_result = (*problem).part2(input.as_str());
-        println!("Part 1: {part_1_result}");
-        println!("Part 2: {part_2_result}");
-    } else {
-        println!("Problem {problem_number} not yet solved")
-    }
+    let problem = problem_lookup.get_mut(problem_number - 1).unwrap();
+    let input = std::fs::read_to_string(format!("data/{problem_number}.txt")).unwrap();
+
+    input_handling(tx.clone());
+
+    let mut terminal = ratatui::init_with_options(TerminalOptions {
+        viewport: Viewport::Inline(8),
+    });
+
+    let part_1_result = (**problem).part1(input.as_str(), tx.clone());
+    let part_2_result = (**problem).part2(input.as_str(), tx.clone());
+
+    tx.send(Event::UpdatePart1Result(part_1_result)).unwrap();
+    tx.send(Event::UpdatePart2Result(part_2_result)).unwrap();
+
+    let app_result = run(&mut terminal, rx);
+
+    ratatui::restore();
+
+    app_result
 }
 
 pub fn fetch_data() {
@@ -101,4 +124,84 @@ pub fn fetch_data() {
             )
         }
     }
+}
+
+pub enum Event {
+    Tick,
+    Input(event::KeyEvent),
+    UpdatePart1Result(u128),
+    UpdatePart2Result(u128),
+}
+
+fn input_handling(tx: mpsc::Sender<Event>) {
+    let tick_rate = Duration::from_millis(200);
+
+    thread::spawn(move || {
+        let mut last_tick = Instant::now();
+
+        loop {
+            let timeout = tick_rate.saturating_sub(last_tick.elapsed());
+            if event::poll(timeout).unwrap() {
+                match event::read().unwrap() {
+                    event::Event::Key(key) => tx.send(Event::Input(key)).unwrap(),
+                    _ => {}
+                };
+            }
+            if last_tick.elapsed() >= tick_rate {
+                tx.send(Event::Tick).unwrap();
+                last_tick = Instant::now();
+            }
+        }
+    });
+}
+
+struct AppDisplayState {
+    part_1_result: u128,
+    part_2_result: u128,
+}
+
+fn run(terminal: &mut Terminal<impl Backend>, rx: mpsc::Receiver<Event>) -> Result<()> {
+    let mut redraw = true;
+
+    let mut app_display_state = AppDisplayState {
+        part_1_result: 0,
+        part_2_result: 0,
+    };
+
+    loop {
+        if redraw {
+            terminal.draw(|frame| draw(frame, &app_display_state))?;
+        }
+        redraw = true;
+
+        match rx.recv()? {
+            Event::Input(event) => {
+                if event.code == event::KeyCode::Char('q') {
+                    break;
+                }
+            }
+            Event::Tick => {}
+            Event::UpdatePart1Result(i) => {
+                app_display_state.part_1_result = i;
+            }
+            Event::UpdatePart2Result(i) => {
+                app_display_state.part_2_result = i;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn draw(frame: &mut Frame, app_display_state: &AppDisplayState) {
+    let areas = Layout::vertical([Constraint::from(2), Constraint::from(2)]).split(frame.area());
+
+    frame.render_widget(
+        Paragraph::new(format!("Part 1: {}", app_display_state.part_1_result)),
+        areas[0],
+    );
+    frame.render_widget(
+        Paragraph::new(format!("Part 2: {}", app_display_state.part_2_result)),
+        areas[1],
+    );
 }

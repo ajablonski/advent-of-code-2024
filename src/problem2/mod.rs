@@ -1,6 +1,9 @@
-use crate::Problem;
+use crate::Event::UpdatePart1Result;
+use crate::{Event, Problem};
+use std::sync::mpsc::Sender;
 
-pub struct Problem2 {}
+pub struct Problem2 {
+}
 
 #[derive(Debug, PartialEq, Eq)]
 enum ReportType {
@@ -11,14 +14,26 @@ enum ReportType {
 }
 
 impl Problem<u128> for Problem2 {
-    fn part1(&self, input: &str) -> u128 {
-        self.parse(input)
+    fn part1(&self, _input: &str, tx: Sender<Event>) -> u128 {
+        let mut partial_count = 0;
+        self.parse(_input)
             .iter()
-            .filter(|l| self.is_safe(l))
+            .filter(|l| {
+                let is_safe = self.is_safe(l);
+
+                if is_safe {
+                    partial_count += 1;
+                }
+
+                tx.send(UpdatePart1Result(partial_count as u128))
+                    .unwrap();
+
+                is_safe
+            })
             .count() as u128
     }
 
-    fn part2(&self, input: &str) -> u128 {
+    fn part2(&self, input: &str, _tx: Sender<Event>) -> u128 {
         self.parse(input)
             .iter()
             .filter(|l| self.is_safe_with_bad_level(l))
@@ -37,9 +52,7 @@ impl Problem2 {
             slice_options.push(other_possibility)
         }
 
-        slice_options
-            .iter()
-            .any(|option| self.is_safe(option))
+        slice_options.iter().any(|option| self.is_safe(option))
     }
 
     fn is_safe(&self, report: &[i8]) -> bool {
@@ -88,14 +101,17 @@ impl Problem2 {
             .map(|l| l.split(" ").map(|n| n.parse::<i8>().unwrap()).collect())
             .collect()
     }
-}
 
-pub const PROBLEM2: Problem2 = Problem2 {};
+    pub(crate) fn new() -> Self {
+        Problem2 { }
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    const P: Problem2 = Problem2 {};
+    use std::sync::mpsc;
+    const P: Problem2 = Problem2 { };
 
     #[test]
     fn should_return_correct_response_for_part1_example() {
@@ -107,6 +123,7 @@ mod tests {
         1 3 2 4 5\n\
         8 6 4 4 1\n\
         1 3 6 7 9",
+            mpsc::channel().0,
         );
         assert_eq!(result, 2);
     }
@@ -166,6 +183,7 @@ mod tests {
         1 3 2 4 5\n\
         8 6 4 4 1\n\
         1 3 6 7 9",
+            mpsc::channel().0,
         );
         assert_eq!(result, 4);
     }
