@@ -6,6 +6,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::sync::mpsc;
+use crate::display::AppDisplayState;
 
 mod problems;
 
@@ -31,8 +32,10 @@ pub fn solve(problem_number: usize) -> Result<()> {
         let part_1_result = (**problem).part1(input.as_str(), tx.clone());
         let part_2_result = (**problem).part2(input.as_str(), tx.clone());
 
-        tx.send(Event::UpdatePart1Result(part_1_result)).unwrap();
-        tx.send(Event::UpdatePart2Result(part_2_result)).unwrap();
+        tx.send(Event::UpdateAppDisplayState(AppDisplayState {
+            part_1_result: Some(part_1_result),
+            part_2_result: Some(part_2_result)
+        })).unwrap();
 
         let app_result = display::run(&mut terminal, rx);
 
@@ -87,6 +90,5 @@ pub fn fetch_data() {
 pub enum Event {
     Tick,
     Input(event::KeyEvent),
-    UpdatePart1Result(u128),
-    UpdatePart2Result(u128),
+    UpdateAppDisplayState(AppDisplayState),
 }
