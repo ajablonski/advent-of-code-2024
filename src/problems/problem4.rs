@@ -3,7 +3,6 @@ use crate::Event;
 use std::ops::Add;
 use std::sync::mpsc::Sender;
 
-#[derive(Clone)]
 pub struct Problem4 {}
 
 impl Problem<u128> for Problem4 {
