@@ -26,13 +26,47 @@ impl Problem<u128> for Problem4 {
         horizontal_count as u128 + vertical_count as u128 + diagonal_count as u128
     }
 
-    fn part2(&self, _input: &str, _tx: Sender<Event>) -> u128 {
-        0
+    fn part2(&self, input: &str, _tx: Sender<Event>) -> u128 {
+        let lines: Vec<Vec<char>> = input
+            .lines()
+            .map(|l| l.chars().collect::<Vec<char>>())
+            .collect();
+
+        let row_count = lines.len();
+
+        let column_count = lines[0].len();
+
+        (0..row_count - 2)
+            .map(|i| {
+                (0..column_count - 2)
+                    .filter(|j| {
+                        (i < row_count - 2)
+                            && (*j < column_count - 2)
+                            && (lines[i + 1][*j + 1] == 'A')
+                            && ((lines[i][*j] == 'M'
+                                && lines[i + 2][*j + 2] == 'S'
+                                && lines[i + 2][*j] == 'M'
+                                && lines[i][*j + 2] == 'S')
+                                || (lines[i][*j] == 'M'
+                                    && lines[i + 2][*j + 2] == 'S'
+                                    && lines[i + 2][*j] == 'S'
+                                    && lines[i][*j + 2] == 'M')
+                                || (lines[i][*j] == 'S'
+                                    && lines[i + 2][*j + 2] == 'M'
+                                    && lines[i + 2][*j] == 'M'
+                                    && lines[i][*j + 2] == 'S')
+                                || (lines[i][*j] == 'S'
+                                    && lines[i + 2][*j + 2] == 'M'
+                                    && lines[i + 2][*j] == 'S'
+                                    && lines[i][*j + 2] == 'M'))
+                    })
+                    .count() as u128
+            })
+            .sum()
     }
 }
 
 impl Problem4 {
-
     fn find_xmas(line: &String) -> usize {
         line.matches("XMAS").count() + line.matches("SAMX").count()
     }
@@ -62,22 +96,20 @@ impl Problem4 {
             vec![String::new(); column_count + row_count - 1];
 
         input.lines().enumerate().for_each(|(i, line)| {
-            line.char_indices()
-                .for_each(|(j, c)| {
-                        let i1 = row_count + j - i - 1;
-                        negative_slope_strs[i1].push(c)
-                });
+            line.char_indices().for_each(|(j, c)| {
+                let i1 = row_count + j - i - 1;
+                negative_slope_strs[i1].push(c)
+            });
         });
 
         let mut positive_slope_strs: Vec<String> =
             vec![String::new(); column_count + row_count - 1];
 
         input.lines().enumerate().for_each(|(i, line)| {
-            line.char_indices()
-                .for_each(|(j, c)| {
-                    let i1 = i + j;
-                    positive_slope_strs[i1].push(c)
-                });
+            line.char_indices().for_each(|(j, c)| {
+                let i1 = i + j;
+                positive_slope_strs[i1].push(c)
+            });
         });
 
         negative_slope_strs.append(positive_slope_strs.as_mut());
@@ -237,8 +269,24 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn test_part2() {
-        assert_eq!(P.part2("", mpsc::channel().0), 0);
+    fn should_solve_part_2_example() {
+        assert_eq!(
+            P.part2(
+                "\
+                MMMSXXMASM\n\
+                MSAMXMSMSA\n\
+                AMXSXMAAMM\n\
+                MSAMASMSMX\n\
+                XMASAMXAMM\n\
+                XXAMMXXAMA\n\
+                SMSMSASXSS\n\
+                SAXAMASAAA\n\
+                MAMMMXMMMM\n\
+                MXMXAXMASX\
+                ",
+                mpsc::channel().0
+            ),
+            9
+        );
     }
 }
