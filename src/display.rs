@@ -1,9 +1,8 @@
 use crate::Event;
 use crossterm::event;
-use ratatui::backend::Backend;
 use ratatui::layout::{Constraint, Layout};
 use ratatui::widgets::Paragraph;
-use ratatui::{Frame, Terminal, TerminalOptions, Viewport};
+use ratatui::{Frame, TerminalOptions, Viewport};
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};

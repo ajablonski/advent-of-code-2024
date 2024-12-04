@@ -1,12 +1,11 @@
+use crate::display::AppDisplayState;
 use crate::problems::get_all_problems;
 use chrono::{TimeZone, Utc};
 use crossterm::event;
-use ratatui::{TerminalOptions, Viewport};
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::sync::mpsc;
-use crate::display::AppDisplayState;
 
 mod problems;
 
