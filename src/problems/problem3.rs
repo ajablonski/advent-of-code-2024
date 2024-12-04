@@ -6,7 +6,6 @@ use crate::Event::UpdateAppDisplayState;
 use regex::Regex;
 use std::sync::mpsc::Sender;
 
-#[derive(Clone)]
 pub struct Problem3 {}
 
 impl Problem<u128> for Problem3 {

@@ -25,10 +25,6 @@ pub fn solve(problem_number: usize) -> Result<()> {
 
         display::input_handling(tx.clone());
 
-        let mut terminal = ratatui::init_with_options(TerminalOptions {
-            viewport: Viewport::Inline(8),
-        });
-
         let part_1_result = (**problem).part1(input.as_str(), tx.clone());
         let part_2_result = (**problem).part2(input.as_str(), tx.clone());
 
@@ -37,7 +33,7 @@ pub fn solve(problem_number: usize) -> Result<()> {
             part_2_result: Some(part_2_result)
         })).unwrap();
 
-        let app_result = display::run(&mut terminal, rx);
+        let app_result = display::run(rx);
 
         ratatui::restore();
 

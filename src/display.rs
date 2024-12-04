@@ -3,7 +3,7 @@ use crossterm::event;
 use ratatui::backend::Backend;
 use ratatui::layout::{Constraint, Layout};
 use ratatui::widgets::Paragraph;
-use ratatui::{Frame, Terminal};
+use ratatui::{Frame, Terminal, TerminalOptions, Viewport};
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -51,7 +51,11 @@ impl AppDisplayState {
     }
 }
 
-pub fn run(terminal: &mut Terminal<impl Backend>, rx: mpsc::Receiver<Event>) -> crate::Result<()> {
+pub fn run(rx: mpsc::Receiver<Event>) -> crate::Result<()> {
+    let mut terminal = ratatui::init_with_options(TerminalOptions {
+        viewport: Viewport::Inline(8),
+    });
+
     let mut redraw = true;
 
     let mut app_display_state = AppDisplayState {
@@ -87,18 +91,15 @@ pub fn run(terminal: &mut Terminal<impl Backend>, rx: mpsc::Receiver<Event>) -> 
 }
 
 fn draw(frame: &mut Frame, app_display_state: &AppDisplayState) {
-    let areas = Layout::vertical([Constraint::from(2), Constraint::from(2)]).split(frame.area());
+    let areas = Layout::vertical([Constraint::from(6), Constraint::from(2)]).split(frame.area());
+
 
     frame.render_widget(
         Paragraph::new(format!(
-            "Part 1: {}",
-            app_display_state.part_1_result.unwrap_or(0)
-        )),
-        areas[0],
-    );
-    frame.render_widget(
-        Paragraph::new(format!(
-            "Part 2: {}",
+            "\
+            Part 1: {}\n\
+            Part 2: {}",
+            app_display_state.part_1_result.unwrap_or(0),
             app_display_state.part_2_result.unwrap_or(0)
         )),
         areas[1],
