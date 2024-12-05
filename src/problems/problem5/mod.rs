@@ -1,0 +1,116 @@
+use crate::problems::Problem;
+use crate::Event;
+use std::sync::mpsc::Sender;
+
+pub struct Problem5 {
+    tx: Sender<Event>,
+}
+
+impl Problem5 {
+    fn parse(data: &str) -> (Vec<Rule>, Vec<Update>) {
+        if let Some((l, r)) = data.split_once("\n\n") {
+            (
+                l.lines()
+                    .filter_map(|l| match l.split_once("|") {
+                        Some((l, r)) => Some(Rule(l.parse().unwrap(), r.parse().unwrap())),
+                        None => None,
+                    })
+                    .collect(),
+                r.lines()
+                    .map(|l| Update(l.split(",").map(|ui| ui.parse::<u32>().unwrap()).collect()))
+                    .collect(),
+            )
+        } else {
+            (vec![], vec![])
+        }
+    }
+}
+
+impl Problem<u128> for Problem5 {
+    fn part1(&self, input: &str) -> u128 {
+        let (rules, updates) = Self::parse(input.trim());
+
+        updates
+            .iter()
+            .filter(|&update| {
+                rules.iter().all(|rule| {
+                    match (update.0.iter().position(|&u| u == rule.0),
+                         update.0.iter().position(|&u| u == rule.1)) {
+                        (Some(l), Some(r)) => l < r,
+                        _ => true
+                    }
+                })
+            })
+            .map(|u| u.0[u.0.len() / 2] as u128)
+            .sum()
+    }
+
+    fn part2(&self, _input: &str) -> u128 {
+        0
+    }
+}
+
+impl Problem5 {
+    pub fn new(tx: &Sender<Event>) -> Self {
+        Problem5 { tx: tx.clone() }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+struct Rule(u32, u32);
+
+#[derive(Debug, PartialEq)]
+
+struct Update(Vec<u32>);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::mpsc;
+
+    fn load_sample_data() -> &'static str {
+        include_str!("../../../sample_data/5.txt")
+    }
+
+    mod parser {
+        use super::*;
+
+        #[test]
+        fn should_correctly_parse_input() {
+            let data = "\
+            1|2\n\
+            3|4\n\
+            5|6\n\
+            \n\
+            1,7,8\n\
+            2,9,8\n\
+            3,10,2";
+
+            let (rules, updates) = Problem5::parse(data);
+
+            assert_eq!(rules, vec![Rule(1, 2), Rule(3, 4), Rule(5, 6)]);
+            assert_eq!(
+                updates,
+                vec![
+                    Update(vec![1, 7, 8]),
+                    Update(vec![2, 9, 8]),
+                    Update(vec![3, 10, 2])
+                ]
+            );
+        }
+    }
+
+    #[test]
+    fn should_produce_correct_answer_for_part_1() {
+        let p: Problem5 = Problem5::new(&mpsc::channel().0);
+
+        assert_eq!(p.part1(load_sample_data()), 143);
+    }
+
+    #[test]
+    fn should_produce_correct_answer_for_part_2() {
+        let p: Problem5 = Problem5::new(&mpsc::channel().0);
+
+        assert_eq!(p.part2(""), 0);
+    }
+}

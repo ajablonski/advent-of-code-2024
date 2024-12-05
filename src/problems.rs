@@ -1,9 +1,10 @@
-use std::sync::mpsc::Sender;
-use crate::Event;
 use crate::problems::problem1::Problem1;
 use crate::problems::problem2::Problem2;
 use crate::problems::problem3::Problem3;
 use crate::problems::problem4::Problem4;
+use crate::problems::problem5::Problem5;
+use crate::Event;
+use std::sync::mpsc::Sender;
 
 pub mod problem1;
 pub mod problem10;
@@ -32,20 +33,21 @@ pub mod problem8;
 pub mod problem9;
 
 pub trait Problem<T> {
-    fn part1(&self, _input: &str, _tx: Sender<Event>) -> T {
+    fn part1(&self, _input: &str) -> T {
         todo!()
     }
 
-    fn part2(&self, _input: &str, _tx: Sender<Event>) -> T {
+    fn part2(&self, _input: &str) -> T {
         todo!()
     }
 }
 
-pub fn get_all_problems() -> Vec<Box<dyn Problem<u128>>> {
+pub fn get_all_problems(tx: &Sender<Event>) -> Vec<Box<dyn Problem<u128>>> {
     vec![
         Box::new(Problem1 {}),
-        Box::new(Problem2 {}),
-        Box::new(Problem3 {}),
+        Box::new(Problem2::new(tx)),
+        Box::new(Problem3::new(tx)),
         Box::new(Problem4 {}),
+        Box::new(Problem5::new(tx)),
     ]
 }

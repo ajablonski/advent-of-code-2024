@@ -1,13 +1,11 @@
-use crate::Event;
-use std::collections::HashMap;
-use std::sync::mpsc::Sender;
 use crate::problems::Problem;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Problem1 {}
 
 impl Problem<u128> for Problem1 {
-    fn part1(&self, _input: &str, _tx: Sender<Event>) -> u128 {
+    fn part1(&self, _input: &str) -> u128 {
         let (mut left_list, mut right_list): (Vec<u128>, Vec<u128>) = _input
             .lines()
             .map(|line| {
@@ -26,10 +24,10 @@ impl Problem<u128> for Problem1 {
             .fold(0, |acc, (a, b)| acc + b.abs_diff(a))
     }
 
-    fn part2(&self, input: &str, _tx: Sender<Event>) -> u128 {
+    fn part2(&self, _input: &str) -> u128 {
         let mut right_counts: HashMap<u128, u128> = HashMap::new();
 
-        input
+        _input
             .lines()
             .map(|line| {
                 let parts: Vec<u128> = line.split(" ").flat_map(|s| s.parse::<u128>()).collect();
@@ -53,7 +51,6 @@ impl Problem<u128> for Problem1 {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::mpsc;
     use super::*;
     const P: Problem1 = Problem1 {};
 
@@ -64,7 +61,7 @@ mod tests {
         2 2\n\
         1 3";
 
-        assert_eq!(P.part1(sample_input, mpsc::channel().0), 0);
+        assert_eq!(P.part1(sample_input), 0);
     }
 
     #[test]
@@ -73,7 +70,7 @@ mod tests {
         4 1\n\
         2 2\n\
         1 3";
-        assert_eq!(P.part1(sample_input, mpsc::channel().0), 1);
+        assert_eq!(P.part1(sample_input), 1);
     }
 
     #[test]
@@ -85,13 +82,13 @@ mod tests {
         1   3\n\
         3   9\n\
         3   3";
-        assert_eq!(P.part2(sample_input, mpsc::channel().0), 31);
+        assert_eq!(P.part2(sample_input), 31);
     }
 
     #[test]
     fn should_calculate_similarity_score_for_very_similar_list() {
         let sample_input = "7  7";
-        assert_eq!(P.part2(sample_input, mpsc::channel().0), 7);
+        assert_eq!(P.part2(sample_input), 7);
     }
 
     #[test]
@@ -99,7 +96,7 @@ mod tests {
         let sample_input = "\
         7  7\n\
         2  6";
-        assert_eq!(P.part2(sample_input, mpsc::channel().0), 7);
+        assert_eq!(P.part2(sample_input), 7);
     }
 
     #[test]
@@ -107,7 +104,7 @@ mod tests {
         let sample_input = "\
         7  7\n\
         2  7";
-        assert_eq!(P.part2(sample_input, mpsc::channel().0), 14);
+        assert_eq!(P.part2(sample_input), 14);
     }
 
     #[test]
@@ -115,6 +112,6 @@ mod tests {
         let sample_input = "\
         7  7\n\
         7  7";
-        assert_eq!(P.part2(sample_input, mpsc::channel().0), 7 * 2 * 2);
+        assert_eq!(P.part2(sample_input), 7 * 2 * 2);
     }
 }

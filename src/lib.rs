@@ -18,14 +18,14 @@ type Result<T> = std::result::Result<T, Box<dyn Error>>;
 pub fn solve(problem_number: usize) -> Result<()> {
     let (tx, rx) = mpsc::channel();
 
-    let all_problems = get_all_problems();
+    let all_problems = get_all_problems(&tx);
     if let Some(problem) = all_problems.get(problem_number - 1) {
         let input = std::fs::read_to_string(format!("data/{problem_number}.txt")).unwrap();
 
         display::input_handling(tx.clone());
 
-        let part_1_result = (**problem).part1(input.as_str(), tx.clone());
-        let part_2_result = (**problem).part2(input.as_str(), tx.clone());
+        let part_1_result = (**problem).part1(input.as_str());
+        let part_2_result = (**problem).part2(input.as_str());
 
         tx.send(Event::UpdateAppDisplayState(AppDisplayState {
             part_1_result: Some(part_1_result),

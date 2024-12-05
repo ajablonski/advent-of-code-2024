@@ -1,10 +1,8 @@
 use crate::problems::problem4::DiagonalTypes::{DownLeft, DownRight, UpLeft, UpRight};
 use crate::problems::Problem;
-use crate::Event;
 use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Write;
-use std::sync::mpsc::Sender;
 
 pub struct Problem4 {}
 
@@ -55,8 +53,8 @@ impl Grid {
 }
 
 impl Problem<u128> for Problem4 {
-    fn part1(&self, input: &str, _tx: Sender<Event>) -> u128 {
-        let grid = Grid::from_string(input);
+    fn part1(&self, _input: &str) -> u128 {
+        let grid = Grid::from_string(_input);
         let word = "XMAS";
 
         (0..grid.row_count)
@@ -72,8 +70,8 @@ impl Problem<u128> for Problem4 {
             .sum()
     }
 
-    fn part2(&self, input: &str, _tx: Sender<Event>) -> u128 {
-        let grid = Grid::from_string(input);
+    fn part2(&self, _input: &str) -> u128 {
+        let grid = Grid::from_string(_input);
 
         (0..grid.row_count)
             .map(|i| {
@@ -193,27 +191,23 @@ impl Problem4 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::mpsc;
     const P: Problem4 = Problem4 {};
 
     #[test]
     fn should_solve_part_1_example() {
         assert_eq!(
-            P.part1(
-                "\
-                MMMSXXMASM\n\
-                MSAMXMSMSA\n\
-                AMXSXMAAMM\n\
-                MSAMASMSMX\n\
-                XMASAMXAMM\n\
-                XXAMMXXAMA\n\
-                SMSMSASXSS\n\
-                SAXAMASAAA\n\
-                MAMMMXMMMM\n\
-                MXMXAXMASX\
-                ",
-                mpsc::channel().0
-            ),
+            P.part1("\
+            MMMSXXMASM\n\
+            MSAMXMSMSA\n\
+            AMXSXMAAMM\n\
+            MSAMASMSMX\n\
+            XMASAMXAMM\n\
+            XXAMMXXAMA\n\
+            SMSMSASXSS\n\
+            SAXAMASAAA\n\
+            MAMMMXMMMM\n\
+            MXMXAXMASX\
+            "),
             18
         );
     }
@@ -221,12 +215,9 @@ mod tests {
     #[test]
     fn should_find_forward_horizontal() {
         assert_eq!(
-            P.part1(
-                "\
-                MMMXMASXXX\
-                ",
-                mpsc::channel().0
-            ),
+            P.part1("\
+            MMMXMASXXX\
+            "),
             1
         );
     }
@@ -234,12 +225,9 @@ mod tests {
     #[test]
     fn should_find_backward_horizontal() {
         assert_eq!(
-            P.part1(
-                "\
-                MMMMMSAMXXXXXX\
-                ",
-                mpsc::channel().0
-            ),
+            P.part1("\
+            MMMMMSAMXXXXXX\
+            "),
             1
         );
     }
@@ -247,15 +235,12 @@ mod tests {
     #[test]
     fn should_find_forward_vertical() {
         assert_eq!(
-            P.part1(
-                "\
-                MMMMMXMMMMM\n\
-                MMMMMMMMMMM\n\
-                MMMMMAMMMMM\n\
-                MMMMMSMMMMM\
-                ",
-                mpsc::channel().0
-            ),
+            P.part1("\
+            MMMMMXMMMMM\n\
+            MMMMMMMMMMM\n\
+            MMMMMAMMMMM\n\
+            MMMMMSMMMMM\
+            "),
             1
         );
     }
@@ -263,15 +248,12 @@ mod tests {
     #[test]
     fn should_find_backward_vertical() {
         assert_eq!(
-            P.part1(
-                "\
-                MMMMMSMMMMM\n\
-                MMMMMAMMMMM\n\
-                MMMMMMMMMMM\n\
-                MMMMMXMMMMM\
-                ",
-                mpsc::channel().0
-            ),
+            P.part1("\
+            MMMMMSMMMMM\n\
+            MMMMMAMMMMM\n\
+            MMMMMMMMMMM\n\
+            MMMMMXMMMMM\
+            "),
             1
         );
     }
@@ -279,15 +261,12 @@ mod tests {
     #[test]
     fn should_find_forward_negative_diagonal() {
         assert_eq!(
-            P.part1(
-                "\
-                MMMXMMMMMMM\n\
-                MMMMMMMMMMM\n\
-                MMMMMAMMMMM\n\
-                MMMMMMSMMMM\
-                ",
-                mpsc::channel().0
-            ),
+            P.part1("\
+            MMMXMMMMMMM\n\
+            MMMMMMMMMMM\n\
+            MMMMMAMMMMM\n\
+            MMMMMMSMMMM\
+            "),
             1
         );
     }
@@ -295,15 +274,12 @@ mod tests {
     #[test]
     fn should_find_backward_negative_diagonal() {
         assert_eq!(
-            P.part1(
-                "\
-                MMMSMMMMMMM\n\
-                MMMMAMMMMMM\n\
-                MMMMMMMMMMM\n\
-                MMMMMMXMMMM\
-                ",
-                mpsc::channel().0
-            ),
+            P.part1("\
+            MMMSMMMMMMM\n\
+            MMMMAMMMMMM\n\
+            MMMMMMMMMMM\n\
+            MMMMMMXMMMM\
+            "),
             1
         );
     }
@@ -311,15 +287,12 @@ mod tests {
     #[test]
     fn should_find_forward_positive_diagonal() {
         assert_eq!(
-            P.part1(
-                "\
-                MMMMMSMMMMM\n\
-                MMMMAMMMMMM\n\
-                MMMMMMMMMMM\n\
-                MMXMMMMMMMM\
-                ",
-                mpsc::channel().0
-            ),
+            P.part1("\
+            MMMMMSMMMMM\n\
+            MMMMAMMMMMM\n\
+            MMMMMMMMMMM\n\
+            MMXMMMMMMMM\
+            "),
             1
         );
     }
@@ -327,15 +300,12 @@ mod tests {
     #[test]
     fn should_find_backward_positive_diagonal() {
         assert_eq!(
-            P.part1(
-                "\
-                MMMMMXMMMMM\n\
-                MMMMMMMMMMM\n\
-                MMMAMMMMMMM\n\
-                MMSMMMMMMMM\
-                ",
-                mpsc::channel().0
-            ),
+            P.part1("\
+            MMMMMXMMMMM\n\
+            MMMMMMMMMMM\n\
+            MMMAMMMMMMM\n\
+            MMSMMMMMMMM\
+            "),
             1
         );
     }
@@ -343,21 +313,18 @@ mod tests {
     #[test]
     fn should_solve_part_2_example() {
         assert_eq!(
-            P.part2(
-                "\
-                MMMSXXMASM\n\
-                MSAMXMSMSA\n\
-                AMXSXMAAMM\n\
-                MSAMASMSMX\n\
-                XMASAMXAMM\n\
-                XXAMMXXAMA\n\
-                SMSMSASXSS\n\
-                SAXAMASAAA\n\
-                MAMMMXMMMM\n\
-                MXMXAXMASX\
-                ",
-                mpsc::channel().0
-            ),
+            P.part2("\
+            MMMSXXMASM\n\
+            MSAMXMSMSA\n\
+            AMXSXMAAMM\n\
+            MSAMASMSMX\n\
+            XMASAMXAMM\n\
+            XXAMMXXAMA\n\
+            SMSMSASXSS\n\
+            SAXAMASAAA\n\
+            MAMMMXMMMM\n\
+            MXMXAXMASX\
+            "),
             9
         );
     }
@@ -365,24 +332,18 @@ mod tests {
     #[test]
     fn should_correctly_identify_x_mas() {
         assert_eq!(
-            P.part2(
-                "\
-                MAS\n\
-                AAA\n\
-                SAM",
-                mpsc::channel().0
-            ),
+            P.part2("\
+            MAS\n\
+            AAA\n\
+            SAM"),
             0
         );
 
         assert_eq!(
-            P.part2(
-                "\
-                MAS\n\
-                AAA\n\
-                MAS",
-                mpsc::channel().0
-            ),
+            P.part2("\
+            MAS\n\
+            AAA\n\
+            MAS"),
             1
         )
     }
