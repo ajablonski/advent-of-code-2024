@@ -1,5 +1,7 @@
+use crate::problems::problem4::DiagonalTypes::{DownLeft, DownRight, UpLeft, UpRight};
 use crate::problems::Problem;
 use crate::Event;
+use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Write;
 use std::sync::mpsc::Sender;
@@ -10,6 +12,14 @@ struct Grid {
     lines: Vec<Vec<char>>,
     row_count: usize,
     col_count: usize,
+}
+
+#[derive(Eq, Hash, PartialEq)]
+enum DiagonalTypes {
+    UpRight,
+    DownRight,
+    DownLeft,
+    UpLeft,
 }
 
 impl fmt::Debug for Grid {
@@ -47,14 +57,15 @@ impl Grid {
 impl Problem<u128> for Problem4 {
     fn part1(&self, input: &str, _tx: Sender<Event>) -> u128 {
         let grid = Grid::from_string(input);
+        let word = "XMAS";
 
         (0..grid.row_count)
             .map(|i| {
                 (0..grid.col_count)
                     .map(|j| {
-                        Self::check_horizontal(i, j, &grid)
-                            + Self::check_vertical(i, j, &grid)
-                            + Self::check_diagonal(i, j, &grid)
+                        Self::check_horizontal(i, j, &grid, word)
+                            + Self::check_vertical(i, j, &grid, word)
+                            + Self::check_diagonal(i, j, &grid, word).len() as u128
                     })
                     .sum::<u128>() as u128
             })
@@ -62,125 +73,118 @@ impl Problem<u128> for Problem4 {
     }
 
     fn part2(&self, input: &str, _tx: Sender<Event>) -> u128 {
-        let lines: Vec<Vec<char>> = input
-            .lines()
-            .map(|l| l.chars().collect::<Vec<char>>())
-            .collect();
+        let grid = Grid::from_string(input);
 
-        let row_count = lines.len();
-
-        let column_count = lines[0].len();
-
-        (0..row_count - 2)
+        (0..grid.row_count)
             .map(|i| {
-                (0..column_count - 2)
+                (0..grid.col_count)
                     .filter(|j| {
-                        (i < row_count - 2)
-                            && (*j < column_count - 2)
-                            && (lines[i + 1][*j + 1] == 'A')
-                            && ((lines[i][*j] == 'M'
-                                && lines[i + 2][*j + 2] == 'S'
-                                && lines[i + 2][*j] == 'M'
-                                && lines[i][*j + 2] == 'S')
-                                || (lines[i][*j] == 'M'
-                                    && lines[i + 2][*j + 2] == 'S'
-                                    && lines[i + 2][*j] == 'S'
-                                    && lines[i][*j + 2] == 'M')
-                                || (lines[i][*j] == 'S'
-                                    && lines[i + 2][*j + 2] == 'M'
-                                    && lines[i + 2][*j] == 'M'
-                                    && lines[i][*j + 2] == 'S')
-                                || (lines[i][*j] == 'S'
-                                    && lines[i + 2][*j + 2] == 'M'
-                                    && lines[i + 2][*j] == 'S'
-                                    && lines[i][*j + 2] == 'M'))
+                        let as_diagonals = Self::check_diagonal(i, *j, &grid, "AS");
+
+                        let am_diagonals = Self::check_diagonal(i, *j, &grid, "AM");
+
+                        as_diagonals.len() == 2
+                            && am_diagonals.len() == 2
+                            && (as_diagonals != HashSet::from([UpLeft, DownRight]))
+                            && (as_diagonals != HashSet::from([UpRight, DownLeft]))
                     })
                     .count() as u128
             })
-            .sum()
+            .sum::<u128>()
     }
 }
 
 impl Problem4 {
-    fn check_horizontal(row: usize, column: usize, grid: &Grid) -> u128 {
+    fn check_horizontal(row: usize, column: usize, grid: &Grid, word: &str) -> u128 {
         let mut total = 0;
-        let word_as_chars = "XMAS".chars().collect::<Vec<char>>();
+        let word_as_chars = word.chars().collect::<Vec<char>>();
         let word_length = word_as_chars.len();
-        if grid.lines[row][column] == word_as_chars[0] {
-            if column >= word_length - 1
-                && grid.lines[row][column - 1] == word_as_chars[1]
-                && grid.lines[row][column - 2] == word_as_chars[2]
-                && grid.lines[row][column - 3] == word_as_chars[3]
-            {
-                total += 1
-            }
-            if column + word_length - 1 < grid.col_count
-                && grid.lines[row][column + 1] == word_as_chars[1]
-                && grid.lines[row][column + 2] == word_as_chars[2]
-                && grid.lines[row][column + 3] == word_as_chars[3]
-            {
-                total += 1
-            }
+        if column >= word_length - 1
+            && word_as_chars
+                .iter()
+                .enumerate()
+                .all(|(i, c)| grid.lines[row][column - i] == *c)
+        {
+            // check backwards
+            total += 1
+        }
+        if column + word_length - 1 < grid.col_count
+            && word_as_chars
+                .iter()
+                .enumerate()
+                .all(|(i, c)| grid.lines[row][column + i] == *c)
+        {
+            // check forwards
+            total += 1
         }
         total
     }
 
-    fn check_diagonal(row: usize, column: usize, grid: &Grid) -> u128 {
-        let word_as_chars = "XMAS".chars().collect::<Vec<char>>();
+    fn check_diagonal(
+        row: usize,
+        column: usize,
+        grid: &Grid,
+        word: &str,
+    ) -> HashSet<DiagonalTypes> {
+        let word_as_chars = word.chars().collect::<Vec<char>>();
         let word_length = word_as_chars.len();
-        let mut total = 0;
-        if grid.lines[row][column] == word_as_chars[0]{
-            if row >= word_length - 1 && column + word_length - 1 < grid.col_count // /, upwards
-                && grid.lines[row - 1][column + 1] == word_as_chars[1]
-                && grid.lines[row - 2][column + 2] == word_as_chars[2]
-                && grid.lines[row - 3][column + 3] == word_as_chars[3]
-            {
-                total += 1
-            }
-            if row + word_length - 1 < grid.row_count && column + word_length - 1 < grid.col_count // \, downwards
-                && grid.lines[row + 1][column + 1] == word_as_chars[1]
-                && grid.lines[row + 2][column + 2] == word_as_chars[2]
-                && grid.lines[row + 3][column + 3] == word_as_chars[3]
-            {
-                total += 1
-            }
-            if row + word_length - 1 < grid.row_count && column >= word_length - 1 // /, downwards
-                && grid.lines[row + 1][column - 1] == word_as_chars[1]
-                && grid.lines[row + 2][column - 2] == word_as_chars[2]
-                && grid.lines[row + 3][column - 3] == word_as_chars[3]
-            {
-                total += 1
-            }
-            if row >= word_length - 1 && column >= word_length - 1 // \, upwards
-                && grid.lines[row - 1][column - 1] == word_as_chars[1]
-                && grid.lines[row - 2][column - 2] == word_as_chars[2]
-                && grid.lines[row - 3][column - 3] == word_as_chars[3]
-            {
-                total += 1
-            }
+        let mut match_types: HashSet<DiagonalTypes> = HashSet::new();
+        if row >= word_length - 1 && column + word_length - 1 < grid.col_count // /, upwards
+            && word_as_chars
+            .iter()
+            .enumerate()
+            .all(|(i, c)| grid.lines[row - i][column + i] == *c)
+        {
+            match_types.insert(DiagonalTypes::UpRight);
+        }
+        if row + word_length - 1 < grid.row_count && column + word_length - 1 < grid.col_count // \, downwards
+            && word_as_chars
+            .iter()
+            .enumerate()
+            .all(|(i, c)| grid.lines[row + i][column + i] == *c)
+        {
+            match_types.insert(DiagonalTypes::DownRight);
+        }
+        if row + word_length - 1 < grid.row_count && column >= word_length - 1 // /, downwards
+            && word_as_chars
+            .iter()
+            .enumerate()
+            .all(|(i, c)| grid.lines[row + i][column - i] == *c)
+        {
+            match_types.insert(DiagonalTypes::DownLeft);
+        }
+        if row >= word_length - 1 && column >= word_length - 1 // \, upwards
+            && word_as_chars
+            .iter()
+            .enumerate()
+            .all(|(i, c)| grid.lines[row - i][column - i] == *c)
+        {
+            match_types.insert(DiagonalTypes::UpLeft);
         }
 
-        total
+        match_types
     }
 
-    fn check_vertical(row: usize, column: usize, grid: &Grid) -> u128 {
-        let word_as_chars = "XMAS".chars().collect::<Vec<char>>();
+    fn check_vertical(row: usize, column: usize, grid: &Grid, word: &str) -> u128 {
+        let word_as_chars = word.chars().collect::<Vec<char>>();
         let word_length = word_as_chars.len();
         let mut total = 0;
-        if grid.lines[row][column] == word_as_chars[0] {
-            if row >= word_length - 1
-                && grid.lines[row - 1][column] == word_as_chars[1]
-                && grid.lines[row - 2][column] == word_as_chars[2]
-                && grid.lines[row - 3][column] == word_as_chars[3] {
-                total += 1
-            }
+        if row >= word_length - 1
+            && word_as_chars
+                .iter()
+                .enumerate()
+                .all(|(i, c)| grid.lines[row - i][column] == *c)
+        {
+            total += 1
+        }
 
-            if row + 3 < grid.row_count
-                && grid.lines[row + 1][column] == word_as_chars[1]
-                && grid.lines[row + 2][column] == word_as_chars[2]
-                && grid.lines[row + 3][column] == word_as_chars[3] {
-                total += 1
-            }
+        if row + 3 < grid.row_count
+            && word_as_chars
+                .iter()
+                .enumerate()
+                .all(|(i, c)| grid.lines[row + i][column] == *c)
+        {
+            total += 1
         }
         total
     }
@@ -356,5 +360,30 @@ mod tests {
             ),
             9
         );
+    }
+
+    #[test]
+    fn should_correctly_identify_x_mas() {
+        assert_eq!(
+            P.part2(
+                "\
+                MAS\n\
+                AAA\n\
+                SAM",
+                mpsc::channel().0
+            ),
+            0
+        );
+
+        assert_eq!(
+            P.part2(
+                "\
+                MAS\n\
+                AAA\n\
+                MAS",
+                mpsc::channel().0
+            ),
+            1
+        )
     }
 }
