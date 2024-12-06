@@ -33,6 +33,7 @@ pub fn solve(problem_number: usize) -> Result<()> {
             part_1_result: Some(part_1_result),
             part_2_result: Some(part_2_result),
             rows: VecDeque::new(),
+            grid: None
         })).unwrap();
 
         let app_result = display::run(rx);

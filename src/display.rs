@@ -9,6 +9,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
+use crate::problems::common::Grid;
 
 pub fn input_handling(tx: mpsc::Sender<Event>) {
     let tick_rate = Duration::from_millis(200);
@@ -37,6 +38,7 @@ pub struct AppDisplayState {
     pub rows: VecDeque<Line<'static>>,
     pub part_1_result: Option<u128>,
     pub part_2_result: Option<u128>,
+    pub grid: Option<Grid>
 }
 
 impl AppDisplayState {
@@ -45,6 +47,7 @@ impl AppDisplayState {
             part_1_result: Some(i),
             part_2_result: None,
             rows: VecDeque::new(),
+            grid: None
         }
     }
 
@@ -53,13 +56,23 @@ impl AppDisplayState {
             part_1_result: None,
             part_2_result: Some(i),
             rows: VecDeque::new(),
+            grid: None
+        }
+    }
+
+    pub fn grid_update(g: Grid) -> Self {
+        AppDisplayState {
+            part_1_result: None,
+            part_2_result: None,
+            rows: VecDeque::new(),
+            grid: Some(g)
         }
     }
 }
 
 pub fn run(rx: mpsc::Receiver<Event>) -> crate::Result<()> {
     let mut terminal = ratatui::init_with_options(TerminalOptions {
-        viewport: Viewport::Inline(8),
+        viewport: Viewport::Inline(150),
     });
 
     let mut redraw = true;
@@ -68,6 +81,7 @@ pub fn run(rx: mpsc::Receiver<Event>) -> crate::Result<()> {
         part_1_result: None,
         part_2_result: None,
         rows: VecDeque::new(),
+        grid: None
     };
 
     loop {
@@ -90,6 +104,9 @@ pub fn run(rx: mpsc::Receiver<Event>) -> crate::Result<()> {
                 if ads.part_2_result.is_some() {
                     app_display_state.part_2_result = ads.part_2_result
                 }
+                if ads.grid.is_some() {
+                    app_display_state.grid = ads.grid;
+                }
             }
             Event::NewRowEvent(line) => {
                 app_display_state.rows.push_front(line);
@@ -102,21 +119,45 @@ pub fn run(rx: mpsc::Receiver<Event>) -> crate::Result<()> {
 }
 
 fn draw(frame: &mut Frame, app_display_state: &AppDisplayState) {
-    let areas = Layout::vertical([Constraint::from(6), Constraint::from(2)]).split(frame.area());
+    match &app_display_state.grid {
+        Some(g) => {
+            let areas = Layout::vertical([Constraint::from(140), Constraint::from(2)]).split(frame.area());
 
-    frame.render_widget(
-        List::new(app_display_state.rows.clone()),
-        areas[0]
-    );
+            frame.render_widget(
+                Paragraph::new(format!("{g:?}")),
+                areas[0]
+            );
 
-    frame.render_widget(
-        Paragraph::new(format!(
-            "\
+            frame.render_widget(
+                Paragraph::new(format!(
+                    "\
             Part 1: {}\n\
             Part 2: {}",
-            app_display_state.part_1_result.unwrap_or(0),
-            app_display_state.part_2_result.unwrap_or(0)
-        )),
-        areas[1],
-    );
+                    app_display_state.part_1_result.unwrap_or(0),
+                    app_display_state.part_2_result.unwrap_or(0)
+                )),
+                areas[1],
+            );
+        }
+        None => {
+            let areas = Layout::vertical([Constraint::from(6), Constraint::from(2)]).split(frame.area());
+
+            frame.render_widget(
+                List::new(app_display_state.rows.clone()),
+                areas[0]
+            );
+
+            frame.render_widget(
+                Paragraph::new(format!(
+                    "\
+            Part 1: {}\n\
+            Part 2: {}",
+                    app_display_state.part_1_result.unwrap_or(0),
+                    app_display_state.part_2_result.unwrap_or(0)
+                )),
+                areas[1],
+            );
+        }
+    }
+
 }

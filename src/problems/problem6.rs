@@ -3,7 +3,9 @@ use crate::problems::problem6::Direction::{EAST, NORTH, SOUTH, WEST};
 use crate::problems::Problem;
 use std::collections::HashSet;
 use std::sync::mpsc;
+use crate::display::AppDisplayState;
 use crate::Event;
+use crate::Event::UpdateAppDisplayState;
 
 pub struct Problem6 {
     tx: mpsc::Sender<Event>
@@ -183,6 +185,7 @@ impl Problem<u128> for Problem6 {
         let mut grid = GuardGrid::from_string(input);
 
         while grid.has_guard {
+            self.tx.send(UpdateAppDisplayState(AppDisplayState::grid_update(grid.grid.clone()))).unwrap_or(());
             grid = grid.advance();
         }
 
