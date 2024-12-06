@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 use std::sync::mpsc::Sender;
 
 pub struct Problem5 {
-    tx: Sender<Event>,
+    _tx: Sender<Event>,
 }
 
 impl Problem5 {
@@ -31,18 +31,14 @@ impl Problem<u128> for Problem5 {
     fn part1(&self, input: &str) -> u128 {
         let (rules, updates) = Self::parse(input.trim());
 
-        updates
+        Problem5::sort_updates(&updates, &rules)
             .iter()
-            .filter(|&update| {
-                rules.iter().all(|rule| {
-                    match (
-                        update.0.iter().position(|&u| u == rule.0),
-                        update.0.iter().position(|&u| u == rule.1),
-                    ) {
-                        (Some(l), Some(r)) => l < r,
-                        _ => true,
-                    }
-                })
+            .filter_map(|(unsorted, sorted)| {
+                if *unsorted == sorted {
+                    Some(unsorted)
+                } else {
+                    None
+                }
             })
             .map(|u| u.0[u.0.len() / 2] as u128)
             .sum()
@@ -51,44 +47,48 @@ impl Problem<u128> for Problem5 {
     fn part2(&self, input: &str) -> u128 {
         let (rules, updates) = Self::parse(input.trim());
 
-        updates
+        Problem5::sort_updates(&updates, &rules)
             .iter()
-            .filter(|&update| {
-                !rules.iter().all(|rule| {
-                    match (
-                        update.0.iter().position(|&u| u == rule.0),
-                        update.0.iter().position(|&u| u == rule.1),
-                    ) {
-                        (Some(l), Some(r)) => l < r,
-                        _ => true,
-                    }
-                })
+            .filter_map(|(unsorted, sorted)| {
+                if *unsorted == sorted {
+                    None
+                } else {
+                    Some(sorted)
+                }
             })
-            .map(|u| {
-                let mut new_vec = u.0.to_vec();
-
-                new_vec.sort_by(|&l, &r| {
-                    let applicable_rules = rules
-                        .iter()
-                        .find(|&rule| (rule.0 == l && rule.1 == r) || (rule.1 == l && rule.0 == r));
-
-                    match applicable_rules {
-                        Some(Rule(rule_l, _rule_r)) if *rule_l == l => Ordering::Less,
-                        Some(Rule(_rule_l, rule_r)) if *rule_r == l => Ordering::Greater,
-                        _ => Ordering::Equal,
-                    }
-                });
-
-                new_vec
-            })
-            .map(|u| u[u.len() / 2] as u128)
+            .map(|u| u.0[u.0.len() / 2] as u128)
             .sum()
     }
 }
 
 impl Problem5 {
     pub fn new(tx: &Sender<Event>) -> Self {
-        Problem5 { tx: tx.clone() }
+        Problem5 { _tx: tx.clone() }
+    }
+
+    fn sort_updates<'a>(
+        updates: &'a Vec<Update>,
+        rules: &'a Vec<Rule>,
+    ) -> Vec<(&'a Update, Update)> {
+        updates
+            .iter()
+            .map(|u| {
+                let mut new_vec = u.0.to_vec();
+                new_vec.sort_by(|&l, &r| {
+                    let applicable_rule = rules
+                        .iter()
+                        .find(|&rule| (rule.0 == l && rule.1 == r) || (rule.1 == l && rule.0 == r));
+
+                    match applicable_rule {
+                        Some(Rule(rule_l, _)) if *rule_l == l => Ordering::Less,
+                        Some(Rule(rule_l, _)) if *rule_l == r => Ordering::Greater,
+                        _ => Ordering::Equal,
+                    }
+                });
+
+                (u, Update(new_vec))
+            })
+            .collect()
     }
 }
 
