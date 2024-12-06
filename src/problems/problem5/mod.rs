@@ -23,16 +23,16 @@ impl Problem<u128> for Problem5 {
                     .send(UpdateAppDisplayState(AppDisplayState::part_1_only(
                         total_so_far,
                     )))
-                    .unwrap();
+                    .unwrap_or_else(|e| println!("Error updating UI {:?}", e));
                 if *unsorted == *sorted {
                     self.tx
                         .send(NewRowEvent(Line::from(format!("{:?}", unsorted)).green()))
-                        .unwrap();
+                        .unwrap_or_else(|e| println!("Error updating UI {:?}", e));
                     total_so_far + unsorted.0[unsorted.0.len() / 2] as u128
                 } else {
                     self.tx
                         .send(NewRowEvent(Line::from(format!("{:?}", unsorted)).red()))
-                        .unwrap();
+                        .unwrap_or_else(|e| println!("Error updating UI {:?}", e));
                     total_so_far
                 }
             },
@@ -49,12 +49,12 @@ impl Problem<u128> for Problem5 {
                     .send(UpdateAppDisplayState(AppDisplayState::part_2_only(
                         total_so_far,
                     )))
-                    .unwrap();
+                    .unwrap_or_else(|e| println!("Error updating UI {:?}", e));
 
                 if *unsorted == sorted {
                     self.tx
                         .send(NewRowEvent(Line::from(format!("{:?}", unsorted)).gray()))
-                        .unwrap();
+                        .unwrap_or_else(|e| println!("Error updating UI {:?}", e));
                     total_so_far
                 } else {
                     self.tx
@@ -63,7 +63,7 @@ impl Problem<u128> for Problem5 {
                             Span::from(" -> "),
                             Span::from(format!("{:?}", sorted)).green(),
                         ])))
-                        .unwrap();
+                        .unwrap_or_else(|e| println!("Error updating UI {:?}", e));
                     total_so_far + sorted.0[sorted.0.len() / 2] as u128
                 }
             },

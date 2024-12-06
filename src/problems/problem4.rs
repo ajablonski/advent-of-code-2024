@@ -1,16 +1,9 @@
 use crate::problems::problem4::DiagonalTypes::{DownLeft, DownRight, UpLeft, UpRight};
 use crate::problems::Problem;
 use std::collections::HashSet;
-use std::fmt;
-use std::fmt::Write;
+use crate::problems::common::Grid;
 
 pub struct Problem4 {}
-
-struct Grid {
-    lines: Vec<Vec<char>>,
-    row_count: usize,
-    col_count: usize,
-}
 
 #[derive(Eq, Hash, PartialEq)]
 enum DiagonalTypes {
@@ -18,38 +11,6 @@ enum DiagonalTypes {
     DownRight,
     DownLeft,
     UpLeft,
-}
-
-impl fmt::Debug for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_char('\n')?;
-        self.lines.iter().for_each(|line| {
-            line.iter().for_each(|c| f.write_char(*c).unwrap());
-
-            f.write_char('\n').unwrap();
-        });
-
-        Ok(())
-    }
-}
-
-impl Grid {
-    fn from_lines(lines: Vec<Vec<char>>) -> Self {
-        Self {
-            row_count: lines.len(),
-            col_count: lines[0].len(),
-            lines,
-        }
-    }
-
-    fn from_string(input: &str) -> Self {
-        let lines = input
-            .lines()
-            .map(|l| l.chars().collect::<Vec<char>>())
-            .collect();
-
-        Self::from_lines(lines)
-    }
 }
 
 impl Problem<u128> for Problem4 {
