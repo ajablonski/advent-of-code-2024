@@ -29,10 +29,7 @@ impl Problem<u128> for Problem2 {
                 }
 
                 self.tx
-                    .send(UpdateAppDisplayState(AppDisplayState {
-                        part_1_result: Some(partial_count as u128),
-                        part_2_result: None,
-                    }))
+                    .send(UpdateAppDisplayState(AppDisplayState::part_1_only(partial_count)))
                     .unwrap_or_else(|e| println!("Error updating UI {:?}", e));
 
                 is_safe

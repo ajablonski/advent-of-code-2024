@@ -1,14 +1,18 @@
+use std::collections::VecDeque;
 use crate::Event;
 use crossterm::event;
 use ratatui::layout::{Constraint, Layout};
-use ratatui::widgets::Paragraph;
+use ratatui::text::Line;
+use ratatui::widgets::{List, Paragraph};
 use ratatui::{Frame, TerminalOptions, Viewport};
 use std::sync::mpsc;
 use std::thread;
+use std::thread::sleep;
 use std::time::{Duration, Instant};
 
 pub fn input_handling(tx: mpsc::Sender<Event>) {
     let tick_rate = Duration::from_millis(200);
+    let new_tx = tx.clone();
 
     thread::spawn(move || {
         let mut last_tick = Instant::now();
@@ -17,12 +21,12 @@ pub fn input_handling(tx: mpsc::Sender<Event>) {
             let timeout = tick_rate.saturating_sub(last_tick.elapsed());
             if event::poll(timeout).unwrap() {
                 match event::read().unwrap() {
-                    event::Event::Key(key) => tx.send(Event::Input(key)).unwrap(),
+                    event::Event::Key(key) => new_tx.send(Event::Input(key)).unwrap(),
                     _ => {}
                 };
             }
             if last_tick.elapsed() >= tick_rate {
-                tx.send(Event::Tick).unwrap();
+                new_tx.send(Event::Tick).unwrap();
                 last_tick = Instant::now();
             }
         }
@@ -30,6 +34,7 @@ pub fn input_handling(tx: mpsc::Sender<Event>) {
 }
 
 pub struct AppDisplayState {
+    pub rows: VecDeque<Line<'static>>,
     pub part_1_result: Option<u128>,
     pub part_2_result: Option<u128>,
 }
@@ -39,6 +44,7 @@ impl AppDisplayState {
         AppDisplayState {
             part_1_result: Some(i),
             part_2_result: None,
+            rows: VecDeque::new(),
         }
     }
 
@@ -46,6 +52,7 @@ impl AppDisplayState {
         AppDisplayState {
             part_1_result: None,
             part_2_result: Some(i),
+            rows: VecDeque::new(),
         }
     }
 }
@@ -60,6 +67,7 @@ pub fn run(rx: mpsc::Receiver<Event>) -> crate::Result<()> {
     let mut app_display_state = AppDisplayState {
         part_1_result: None,
         part_2_result: None,
+        rows: VecDeque::new(),
     };
 
     loop {
@@ -83,6 +91,10 @@ pub fn run(rx: mpsc::Receiver<Event>) -> crate::Result<()> {
                     app_display_state.part_2_result = ads.part_2_result
                 }
             }
+            Event::NewRowEvent(line) => {
+                app_display_state.rows.push_front(line);
+                sleep(Duration::from_millis(5));
+            }
         }
     }
 
@@ -92,6 +104,10 @@ pub fn run(rx: mpsc::Receiver<Event>) -> crate::Result<()> {
 fn draw(frame: &mut Frame, app_display_state: &AppDisplayState) {
     let areas = Layout::vertical([Constraint::from(6), Constraint::from(2)]).split(frame.area());
 
+    frame.render_widget(
+        List::new(app_display_state.rows.clone()),
+        areas[0]
+    );
 
     frame.render_widget(
         Paragraph::new(format!(

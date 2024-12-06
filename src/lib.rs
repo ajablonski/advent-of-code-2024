@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use crate::display::AppDisplayState;
 use crate::problems::get_all_problems;
 use chrono::{TimeZone, Utc};
@@ -6,6 +7,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::sync::mpsc;
+use ratatui::text::Line;
 
 mod problems;
 
@@ -29,7 +31,8 @@ pub fn solve(problem_number: usize) -> Result<()> {
 
         tx.send(Event::UpdateAppDisplayState(AppDisplayState {
             part_1_result: Some(part_1_result),
-            part_2_result: Some(part_2_result)
+            part_2_result: Some(part_2_result),
+            rows: VecDeque::new(),
         })).unwrap();
 
         let app_result = display::run(rx);
@@ -86,4 +89,5 @@ pub enum Event {
     Tick,
     Input(event::KeyEvent),
     UpdateAppDisplayState(AppDisplayState),
+    NewRowEvent(Line<'static>)
 }
