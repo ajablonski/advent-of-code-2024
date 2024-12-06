@@ -24,6 +24,7 @@ dependencies = [
  "chrono",
  "clap",
  "crossterm",
+ "itertools",
  "ratatui",
  "regex",
  "reqwest",

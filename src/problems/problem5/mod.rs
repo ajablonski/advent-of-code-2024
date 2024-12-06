@@ -2,6 +2,7 @@ use crate::problems::Problem;
 use crate::Event;
 use std::cmp::Ordering;
 use std::sync::mpsc::Sender;
+use itertools::Itertools;
 
 pub struct Problem5 {
     _tx: Sender<Event>,
@@ -73,18 +74,20 @@ impl Problem5 {
         updates
             .iter()
             .map(|u| {
-                let mut new_vec = u.0.to_vec();
-                new_vec.sort_by(|&l, &r| {
-                    let applicable_rule = rules
-                        .iter()
-                        .find(|&rule| (rule.0 == l && rule.1 == r) || (rule.1 == l && rule.0 == r));
+                let new_vec = u.0.to_vec()
+                    .into_iter()
+                    .sorted_by(|&l, &r| {
+                        let applicable_rule = rules
+                            .iter()
+                            .find(|&rule| (rule.0 == l && rule.1 == r) || (rule.1 == l && rule.0 == r));
 
-                    match applicable_rule {
-                        Some(Rule(rule_l, _)) if *rule_l == l => Ordering::Less,
-                        Some(Rule(rule_l, _)) if *rule_l == r => Ordering::Greater,
-                        _ => Ordering::Equal,
-                    }
-                });
+                        match applicable_rule {
+                            Some(Rule(rule_l, _)) if *rule_l == l => Ordering::Less,
+                            Some(Rule(rule_l, _)) if *rule_l == r => Ordering::Greater,
+                            _ => Ordering::Equal,
+                        }
+                    })
+                    .collect();
 
                 (u, Update(new_vec))
             })
