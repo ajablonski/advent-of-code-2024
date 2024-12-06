@@ -1,5 +1,6 @@
 use crate::problems::Problem;
 use crate::Event;
+use std::cmp::Ordering;
 use std::sync::mpsc::Sender;
 
 pub struct Problem5 {
@@ -34,10 +35,12 @@ impl Problem<u128> for Problem5 {
             .iter()
             .filter(|&update| {
                 rules.iter().all(|rule| {
-                    match (update.0.iter().position(|&u| u == rule.0),
-                         update.0.iter().position(|&u| u == rule.1)) {
+                    match (
+                        update.0.iter().position(|&u| u == rule.0),
+                        update.0.iter().position(|&u| u == rule.1),
+                    ) {
                         (Some(l), Some(r)) => l < r,
-                        _ => true
+                        _ => true,
                     }
                 })
             })
@@ -45,8 +48,41 @@ impl Problem<u128> for Problem5 {
             .sum()
     }
 
-    fn part2(&self, _input: &str) -> u128 {
-        0
+    fn part2(&self, input: &str) -> u128 {
+        let (rules, updates) = Self::parse(input.trim());
+
+        updates
+            .iter()
+            .filter(|&update| {
+                !rules.iter().all(|rule| {
+                    match (
+                        update.0.iter().position(|&u| u == rule.0),
+                        update.0.iter().position(|&u| u == rule.1),
+                    ) {
+                        (Some(l), Some(r)) => l < r,
+                        _ => true,
+                    }
+                })
+            })
+            .map(|u| {
+                let mut new_vec = u.0.to_vec();
+
+                new_vec.sort_by(|&l, &r| {
+                    let applicable_rules = rules
+                        .iter()
+                        .find(|&rule| (rule.0 == l && rule.1 == r) || (rule.1 == l && rule.0 == r));
+
+                    match applicable_rules {
+                        Some(Rule(rule_l, _rule_r)) if *rule_l == l => Ordering::Less,
+                        Some(Rule(_rule_l, rule_r)) if *rule_r == l => Ordering::Greater,
+                        _ => Ordering::Equal,
+                    }
+                });
+
+                new_vec
+            })
+            .map(|u| u[u.len() / 2] as u128)
+            .sum()
     }
 }
 
@@ -111,6 +147,6 @@ mod tests {
     fn should_produce_correct_answer_for_part_2() {
         let p: Problem5 = Problem5::new(&mpsc::channel().0);
 
-        assert_eq!(p.part2(""), 0);
+        assert_eq!(p.part2(load_sample_data()), 123);
     }
 }
