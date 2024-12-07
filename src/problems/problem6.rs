@@ -1,17 +1,17 @@
 use crate::problems::common::Grid;
 use crate::problems::problem6::Direction::{EAST, NORTH, SOUTH, WEST};
 use crate::problems::Problem;
+use crate::Event;
 use std::collections::HashSet;
 use std::sync::mpsc;
-use crate::display::AppDisplayState;
-use crate::Event;
-use crate::Event::UpdateAppDisplayState;
+use ratatui::text::Line;
+use crate::Event::NewRowEvent;
 
 pub struct Problem6 {
-    tx: mpsc::Sender<Event>
+    tx: mpsc::Sender<Event>,
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Hash, Copy)]
 enum Direction {
     NORTH,
     EAST,
@@ -27,6 +27,8 @@ struct GuardGrid {
     obstacle_positions: HashSet<(i32, i32)>,
     visited_positions: HashSet<(i32, i32)>,
     has_guard: bool,
+    has_looped: bool,
+    visited_states: HashSet<(i32, i32, Direction)>,
 }
 
 impl GuardGrid {
@@ -50,10 +52,13 @@ impl GuardGrid {
                 })
             })
             .collect::<Vec<((i32, i32), Direction)>>();
-        let (guard_position, guard_direction) = maybe_guard_details
-            .get(0)
-            .unwrap();
+        let (guard_position, guard_direction) = maybe_guard_details.get(0).unwrap();
         let visited_positions: HashSet<(i32, i32)> = HashSet::from([guard_position.clone()]);
+        let visited_states: HashSet<(i32, i32, Direction)> = HashSet::from([(
+            guard_position.0.clone(),
+            guard_position.1.clone(),
+            guard_direction.clone(),
+        )]);
 
         let obstacle_positions = grid
             .lines
@@ -71,12 +76,18 @@ impl GuardGrid {
             .collect::<HashSet<(i32, i32)>>();
 
         GuardGrid {
-            grid,
+            grid: Grid {
+                lines: vec![],
+                row_count: grid.row_count,
+                col_count: grid.col_count,
+            },
             guard_position: guard_position.clone(),
             guard_direction: guard_direction.clone(),
             obstacle_positions,
             visited_positions,
             has_guard: true,
+            has_looped: false,
+            visited_states,
         }
     }
 
@@ -125,75 +136,71 @@ impl GuardGrid {
             self.guard_position
         };
 
-
-
         let has_guard = self.has_guard
             && guard_position.0 >= 0
             && guard_position.0 < self.grid.row_count as i32
             && guard_position.1 >= 0
             && guard_position.1 < self.grid.col_count as i32;
         let mut visited_positions = self.visited_positions.clone();
+        let mut visited_states = self.visited_states.clone();
+        let new_state = (guard_position.0, guard_position.1, guard_direction.clone());
+        let has_looped = self.visited_states.contains(&new_state);
 
         if has_guard {
             visited_positions.insert(guard_position);
+            visited_states.insert(new_state);
         }
-
-
-
-        let grid = self.grid.lines
-            .iter()
-            .enumerate()
-            .map(|(row_num, row)| {
-                row.iter()
-                    .enumerate()
-                    .map(|(col_num, &c)| {
-                        let char_position = (row_num as i32, col_num as i32);
-                        if char_position == guard_position {
-                            match guard_direction {
-                                NORTH => '^',
-                                EAST => '>',
-                                SOUTH => 'V',
-                                WEST => '<',
-                            }
-                        } else if char_position == self.guard_position {
-                            'X'
-                        } else {
-                            c
-                        }
-                    })
-                    .collect::<Vec<char>>()
-            })
-            .collect::<Vec<Vec<char>>>();
 
         GuardGrid {
             guard_direction,
             guard_position,
             visited_positions,
             has_guard,
-            grid: Grid {
-                row_count: self.grid.row_count,
-                col_count: self.grid.col_count,
-                lines: grid
-            },
-            ..self.clone()
+            grid: self.grid.clone(),
+            visited_states,
+            has_looped,
+            obstacle_positions: self.obstacle_positions.clone()
         }
+    }
+
+    fn advance_all(& self) -> GuardGrid {
+        let mut grid = self.clone();
+
+        while grid.has_guard && !grid.has_looped {
+            grid = grid.advance();
+        }
+
+        grid.clone()
     }
 }
 
 impl Problem<u128> for Problem6 {
     fn part1(&self, input: &str) -> u128 {
-        let mut grid = GuardGrid::from_string(input);
-
-        while grid.has_guard {
-            self.tx.send(UpdateAppDisplayState(AppDisplayState::grid_update(grid.grid.clone()))).unwrap_or(());
-            grid = grid.advance();
-        }
-
-        grid.visited_positions.len() as u128
+        GuardGrid::from_string(input)
+            .advance_all()
+            .visited_positions
+            .len() as u128
     }
 
-    fn part2(&self, _input: &str) -> u128 {
-        0
+    fn part2(&self, input: &str) -> u128 {
+        let original_grid = GuardGrid::from_string(input);
+        let visited_positions = original_grid.advance_all().visited_positions;
+
+        visited_positions
+            .iter()
+            .filter(|&visited_position| {
+                println!("visited position: {:?}", visited_position);
+
+                let mut new_obstacle_positions = original_grid.obstacle_positions.clone();
+                new_obstacle_positions.insert(*visited_position);
+                let grid_with_additional_obstacle = GuardGrid {
+                    obstacle_positions: new_obstacle_positions,
+                    ..original_grid.clone()
+                };
+
+                grid_with_additional_obstacle.advance_all().has_looped
+            })
+            .count() as u128
     }
 }
 
@@ -233,6 +240,21 @@ mod tests {
     fn should_produce_correct_answer_for_part_2() {
         let p: Problem6 = Problem6::new(&mpsc::channel().0);
 
-        assert_eq!(p.part2(""), 0);
+        assert_eq!(
+            p.part2(
+                "\
+        ....#.....\n\
+        .........#\n\
+        ..........\n\
+        ..#.......\n\
+        .......#..\n\
+        ..........\n\
+        .#..^.....\n\
+        ........#.\n\
+        #.........\n\
+        ......#..."
+            ),
+            6
+        );
     }
 }
