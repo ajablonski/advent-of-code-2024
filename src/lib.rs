@@ -1,13 +1,13 @@
-use std::collections::VecDeque;
 use crate::display::AppDisplayState;
 use crate::problems::get_all_problems;
 use chrono::{TimeZone, Utc};
 use crossterm::event;
+use ratatui::text::Line;
+use std::collections::VecDeque;
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::sync::mpsc;
-use ratatui::text::Line;
 
 mod problems;
 
@@ -35,6 +35,7 @@ pub fn solve(problem_number: usize) -> Result<()> {
             rows: VecDeque::new(),
             grid: None
         })).unwrap();
+        tx.send(Event::Input(event::KeyCode::Char('q').into())).unwrap();
 
         let app_result = display::run(rx);
 
