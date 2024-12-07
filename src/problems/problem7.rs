@@ -1,4 +1,3 @@
-use std::ops::Add;
 use crate::problems::problem7::Operator::{ADD, CONCAT, MULTIPLY};
 use crate::problems::Problem;
 
@@ -17,7 +16,7 @@ impl Operator {
         match self {
             ADD => lhs + rhs,
             MULTIPLY => lhs * rhs,
-            CONCAT => lhs.to_string().add(&rhs.to_string()).parse::<u64>().unwrap(),
+            CONCAT => lhs * 10u64.pow(rhs.ilog10() + 1) + rhs,
         }
     }
 }
@@ -97,12 +96,12 @@ impl Problem7 {
             .filter_map(|eq| {
                 let test_value = eq.test_value.clone();
                 if eq.any(|r| r == test_value) {
-                    Some(test_value as u128)
+                    Some(test_value)
                 } else {
                     None
                 }
             })
-            .sum()
+            .sum::<u64>() as u128
     }
 }
 
