@@ -4,11 +4,9 @@ use crate::problems::Problem;
 use crate::Event;
 use std::collections::HashSet;
 use std::sync::mpsc;
-use ratatui::text::Line;
-use crate::Event::NewRowEvent;
 
 pub struct Problem6 {
-    tx: mpsc::Sender<Event>,
+    _tx: mpsc::Sender<Event>,
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Copy)]
@@ -206,7 +204,7 @@ impl Problem<u128> for Problem6 {
 
 impl Problem6 {
     pub fn new(tx: &mpsc::Sender<Event>) -> Problem6 {
-        Problem6 { tx: tx.clone() }
+        Problem6 { _tx: tx.clone() }
     }
 }
 

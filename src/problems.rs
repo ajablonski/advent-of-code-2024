@@ -6,6 +6,7 @@ use crate::problems::problem5::Problem5;
 use crate::Event;
 use std::sync::mpsc::Sender;
 use crate::problems::problem6::Problem6;
+use crate::problems::problem7::Problem7;
 
 pub mod common;
 pub mod problem1;
@@ -52,5 +53,6 @@ pub fn get_all_problems(tx: &Sender<Event>) -> Vec<Box<dyn Problem<u128>>> {
         Box::new(Problem4 {}),
         Box::new(Problem5::new(tx)),
         Box::new(Problem6::new(tx)),
+        Box::new(Problem7 {} ),
     ]
 }
