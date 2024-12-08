@@ -1,7 +1,6 @@
 use crate::problems::common::Grid;
 use crate::problems::Problem;
 use itertools::Itertools;
-use std::cmp::max;
 use std::collections::{HashMap, HashSet};
 
 pub struct Problem8 {}
@@ -91,35 +90,31 @@ impl Problem8 {
 
         let col_difference = node_pair.1 .1 - node_pair.0 .1;
 
-        let decreasing_iterator = (0..(max(col_count, row_count)))
-            .map(|harmonic_count| {
-                (
-                    node_pair.0 .0 - harmonic_count as i32 * row_difference,
-                    node_pair.0 .1 - harmonic_count as i32 * col_difference,
-                )
-            })
-            .filter(|antinode| {
-                antinode.0 >= 0
-                    && antinode.1 >= 0
-                    && antinode.0 < row_count as i32
-                    && antinode.1 < col_count as i32
-            })
-            .fuse();
+        let is_in_range = |location: &(i32, i32)| -> bool {
+            location.0 >= 0
+                && location.1 >= 0
+                && location.0 < row_count as i32
+                && location.1 < col_count as i32
+        };
 
-        let increasing_iterator = (0..max(col_count, row_count))
+
+        let decreasing_iterator = (0..)
             .map(|harmonic_count| {
                 (
-                    node_pair.0 .0 + harmonic_count as i32 * row_difference,
-                    node_pair.0 .1 + harmonic_count as i32 * col_difference,
+                    node_pair.0 .0 - harmonic_count * row_difference,
+                    node_pair.0 .1 - harmonic_count * col_difference,
                 )
             })
-            .filter(|antinode| {
-                antinode.0 >= 0
-                    && antinode.1 >= 0
-                    && antinode.0 < row_count as i32
-                    && antinode.1 < col_count as i32
+            .take_while(is_in_range);
+
+        let increasing_iterator = (0..)
+            .map(|harmonic_count| {
+                (
+                    node_pair.0 .0 + harmonic_count * row_difference,
+                    node_pair.0 .1 + harmonic_count * col_difference,
+                )
             })
-            .fuse();
+            .take_while(is_in_range);
 
         decreasing_iterator.chain(increasing_iterator).collect()
     }
