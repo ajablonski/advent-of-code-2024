@@ -21,6 +21,21 @@ impl fmt::Debug for Grid {
     }
 }
 
+impl IntoIterator for Grid {
+    type Item = ((usize, usize), char);
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.lines
+            .iter()
+            .enumerate()
+            .flat_map(|(row, line)| line.iter().enumerate().map(move |(col, &c)| ((row, col), c)))
+            .collect::<Vec<_>>()
+            .into_iter()
+    }
+}
+
 impl Grid {
     fn from_lines(lines: Vec<Vec<char>>) -> Self {
         Self {
