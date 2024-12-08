@@ -34,7 +34,7 @@ impl Problem<u128> for Problem8 {
         frequencies_and_locations
             .iter()
             .flat_map(|(_, freq)| Problem8::find_pairs(freq))
-            .flat_map(|pair| Problem8::find_harmonic_antinodes(pair, grid.row_count, grid.col_count))
+            .flat_map(|pair| Problem8::find_harmonic_antinodes(pair, &grid))
             .sorted()
             .dedup()
             .count() as u128
@@ -47,10 +47,10 @@ impl Problem8 {
             .into_iter()
             .fold(HashMap::new(), |mut acc, cell| {
                 if cell.1 != '.' {
-                    let cell_as_i32 = (cell.0 .0 as i32, cell.0 .1 as i32);
+                    let location = (cell.0 .0, cell.0 .1);
                     acc.entry(cell.1)
-                        .and_modify(|v| v.push(cell_as_i32))
-                        .or_insert(vec![cell_as_i32]);
+                        .and_modify(|v| v.push(location))
+                        .or_insert(vec![location]);
                 }
                 acc
             })
@@ -83,40 +83,31 @@ impl Problem8 {
 
     fn find_harmonic_antinodes(
         node_pair: ((i32, i32), (i32, i32)),
-        row_count: usize,
-        col_count: usize,
-    ) -> HashSet<(i32, i32)> {
+        grid: &Grid,
+    ) -> impl Iterator<Item = (i32, i32)> + use<'_> {
         let row_difference = node_pair.1 .0 - node_pair.0 .0;
 
         let col_difference = node_pair.1 .1 - node_pair.0 .1;
 
-        let is_in_range = |location: &(i32, i32)| -> bool {
-            location.0 >= 0
-                && location.1 >= 0
-                && location.0 < row_count as i32
-                && location.1 < col_count as i32
-        };
-
-
         let decreasing_iterator = (0..)
-            .map(|harmonic_count| {
+            .map(move |harmonic_count| {
                 (
                     node_pair.0 .0 - harmonic_count * row_difference,
                     node_pair.0 .1 - harmonic_count * col_difference,
                 )
             })
-            .take_while(is_in_range);
+            .take_while(|antinode| grid.is_in_bounds(antinode));
 
         let increasing_iterator = (0..)
-            .map(|harmonic_count| {
+            .map(move |harmonic_count| {
                 (
                     node_pair.0 .0 + harmonic_count * row_difference,
                     node_pair.0 .1 + harmonic_count * col_difference,
                 )
             })
-            .take_while(is_in_range);
+            .take_while(|antinode| grid.is_in_bounds(antinode));
 
-        decreasing_iterator.chain(increasing_iterator).collect()
+        decreasing_iterator.chain(increasing_iterator)
     }
 }
 
@@ -250,8 +241,13 @@ mod tests {
         fn find_harmonic_antinodes_should_find_all_antinodes() {
             let horizontal_pair = ((0, 4), (0, 6));
 
+            let fake_simple_grid = Grid {
+                lines: vec![],
+                row_count: 10,
+                col_count: 10,
+            };
             assert_eq!(
-                Problem8::find_harmonic_antinodes(horizontal_pair, 10, 10),
+                Problem8::find_harmonic_antinodes(horizontal_pair, &fake_simple_grid).collect::<HashSet<_>>(),
                 HashSet::from([(0, 4), (0, 2), (0, 0), (0, 6), (0, 8)])
             )
         }

@@ -22,7 +22,7 @@ impl fmt::Debug for Grid {
 }
 
 impl IntoIterator for Grid {
-    type Item = ((usize, usize), char);
+    type Item = ((i32, i32), char);
 
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
@@ -30,7 +30,11 @@ impl IntoIterator for Grid {
         self.lines
             .iter()
             .enumerate()
-            .flat_map(|(row, line)| line.iter().enumerate().map(move |(col, &c)| ((row, col), c)))
+            .flat_map(|(row, line)| {
+                line.iter()
+                    .enumerate()
+                    .map(move |(col, &c)| ((row as i32, col as i32), c))
+            })
             .collect::<Vec<_>>()
             .into_iter()
     }
@@ -52,5 +56,12 @@ impl Grid {
             .collect();
 
         Self::from_lines(lines)
+    }
+
+    pub fn is_in_bounds(&self, point: &(i32, i32)) -> bool {
+        point.0 >= 0
+            && point.1 >= 0
+            && point.0 < self.row_count as i32
+            && point.1 < self.col_count as i32
     }
 }
