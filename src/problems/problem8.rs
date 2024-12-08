@@ -1,6 +1,7 @@
 use crate::problems::common::Grid;
 use crate::problems::Problem;
 use itertools::Itertools;
+use std::cmp::max;
 use std::collections::{HashMap, HashSet};
 
 pub struct Problem8 {}
@@ -26,8 +27,18 @@ impl Problem<u128> for Problem8 {
             .count() as u128
     }
 
-    fn part2(&self, _input: &str) -> u128 {
-        0
+    fn part2(&self, input: &str) -> u128 {
+        let grid = Grid::from_string(input);
+
+        let frequencies_and_locations = Problem8::find_frequencies_and_locations(&grid);
+
+        frequencies_and_locations
+            .iter()
+            .flat_map(|(_, freq)| Problem8::find_pairs(freq))
+            .flat_map(|pair| Problem8::find_harmonic_antinodes(pair, grid.row_count, grid.col_count))
+            .sorted()
+            .dedup()
+            .count() as u128
     }
 }
 
@@ -70,6 +81,48 @@ impl Problem8 {
             ),
         ])
     }
+
+    fn find_harmonic_antinodes(
+        node_pair: ((i32, i32), (i32, i32)),
+        row_count: usize,
+        col_count: usize,
+    ) -> HashSet<(i32, i32)> {
+        let row_difference = node_pair.1 .0 - node_pair.0 .0;
+
+        let col_difference = node_pair.1 .1 - node_pair.0 .1;
+
+        let decreasing_iterator = (0..(max(col_count, row_count)))
+            .map(|harmonic_count| {
+                (
+                    node_pair.0 .0 - harmonic_count as i32 * row_difference,
+                    node_pair.0 .1 - harmonic_count as i32 * col_difference,
+                )
+            })
+            .filter(|antinode| {
+                antinode.0 >= 0
+                    && antinode.1 >= 0
+                    && antinode.0 < row_count as i32
+                    && antinode.1 < col_count as i32
+            })
+            .fuse();
+
+        let increasing_iterator = (0..max(col_count, row_count))
+            .map(|harmonic_count| {
+                (
+                    node_pair.0 .0 + harmonic_count as i32 * row_difference,
+                    node_pair.0 .1 + harmonic_count as i32 * col_difference,
+                )
+            })
+            .filter(|antinode| {
+                antinode.0 >= 0
+                    && antinode.1 >= 0
+                    && antinode.0 < row_count as i32
+                    && antinode.1 < col_count as i32
+            })
+            .fuse();
+
+        decreasing_iterator.chain(increasing_iterator).collect()
+    }
 }
 
 #[cfg(test)]
@@ -102,7 +155,24 @@ mod tests {
     #[test]
     fn should_produce_correct_answer_for_part_2() {
         let p = Problem8 {};
-        assert_eq!(p.part2(""), 0);
+        assert_eq!(
+            p.part2(
+                "\
+                ............\n\
+                ........0...\n\
+                .....0......\n\
+                .......0....\n\
+                ....0.......\n\
+                ......A.....\n\
+                ............\n\
+                ............\n\
+                ........A...\n\
+                .........A..\n\
+                ............\n\
+                ............"
+            ),
+            34
+        );
     }
 
     mod test_helper_functions {
@@ -179,6 +249,16 @@ mod tests {
                 Problem8::find_antinodes(diagonal_pair_reversed),
                 HashSet::from([(-3, -2), (6, 4)])
             );
+        }
+
+        #[test]
+        fn find_harmonic_antinodes_should_find_all_antinodes() {
+            let horizontal_pair = ((0, 4), (0, 6));
+
+            assert_eq!(
+                Problem8::find_harmonic_antinodes(horizontal_pair, 10, 10),
+                HashSet::from([(0, 4), (0, 2), (0, 0), (0, 6), (0, 8)])
+            )
         }
     }
 }

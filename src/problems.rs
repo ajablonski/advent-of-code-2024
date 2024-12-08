@@ -3,11 +3,11 @@ use crate::problems::problem2::Problem2;
 use crate::problems::problem3::Problem3;
 use crate::problems::problem4::Problem4;
 use crate::problems::problem5::Problem5;
-use crate::Event;
-use std::sync::mpsc::Sender;
 use crate::problems::problem6::Problem6;
 use crate::problems::problem7::Problem7;
 use crate::problems::problem8::Problem8;
+use crate::Event;
+use std::sync::mpsc::Sender;
 
 pub mod common;
 pub mod problem1;
