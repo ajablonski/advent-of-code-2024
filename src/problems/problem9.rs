@@ -26,24 +26,22 @@ impl FileSystem {
 
         let mut last_file_iter = self.files.iter_mut().rev();
         let mut last_file = last_file_iter.next().unwrap();
-        let mut last_file_locations = last_file.locations.clone();
         let mut new_locations = vec![];
 
         for free_location in free_spaces {
-            let location_to_replace = last_file_locations.pop().unwrap();
+            let location_to_replace = last_file.locations.pop().unwrap();
             if location_to_replace > free_location {
                 new_locations.push(free_location);
 
-                if last_file_locations.is_empty() {
+                if last_file.locations.is_empty() {
                     last_file.locations = new_locations;
 
                     // move to next file
                     last_file = last_file_iter.next().unwrap();
-                    last_file_locations = last_file.locations.clone();
                     new_locations = vec![];
                 }
             } else {
-                new_locations.extend(last_file_locations);
+                new_locations.extend(last_file.locations.clone());
                 new_locations.push(location_to_replace);
                 last_file.locations = new_locations;
 
@@ -57,10 +55,8 @@ impl FileSystem {
     pub(crate) fn compact_no_fragmentation(&mut self) -> FileSystem {
         let files = self.files.iter_mut().rev();
 
-        let mut new_free_spaces = self.free_spaces.clone();
-
         for file in files {
-            for free_space in new_free_spaces.iter_mut() {
+            for free_space in self.free_spaces.iter_mut() {
                 let file_size = file.locations.len();
                 if free_space.start < file.locations[0] && free_space.try_len().unwrap() >= file_size {
                     file.locations = free_space.take(file_size).collect_vec()
@@ -68,11 +64,10 @@ impl FileSystem {
             }
         }
 
-        let mut return_value = self.clone();
-
-        return_value.free_spaces = new_free_spaces.into_iter().filter(|r| !r.is_empty()).collect_vec();
-
-        return_value
+        FileSystem {
+            files: self.files.clone(),
+            free_spaces: self.free_spaces.clone().into_iter().filter(|r| !r.is_empty()).collect(),
+        }
     }
 }
 
