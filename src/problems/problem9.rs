@@ -36,7 +36,6 @@ impl FileSystem {
 
                 if last_file_locations.is_empty() {
                     last_file.locations = new_locations;
-                    println!("Done with");
 
                     // move to next file
                     last_file = last_file_iter.next().unwrap();
@@ -44,7 +43,6 @@ impl FileSystem {
                     new_locations = vec![];
                 }
             } else {
-                println!("ENDING");
                 new_locations.extend(last_file_locations);
                 new_locations.push(location_to_replace);
                 last_file.locations = new_locations;
@@ -54,6 +52,27 @@ impl FileSystem {
         }
 
         self.clone()
+    }
+
+    pub(crate) fn compact_no_fragmentation(&mut self) -> FileSystem {
+        let files = self.files.iter_mut().rev();
+
+        let mut new_free_spaces = self.free_spaces.clone();
+
+        for file in files {
+            for free_space in new_free_spaces.iter_mut() {
+                let file_size = file.locations.len();
+                if free_space.start < file.locations[0] && free_space.try_len().unwrap() >= file_size {
+                    file.locations = free_space.take(file_size).collect_vec()
+                }
+            }
+        }
+
+        let mut return_value = self.clone();
+
+        return_value.free_spaces = new_free_spaces.into_iter().filter(|r| !r.is_empty()).collect_vec();
+
+        return_value
     }
 }
 
@@ -76,7 +95,20 @@ impl Problem<u128> for Problem9 {
     }
 
     fn part2(&self, input: &str) -> u128 {
-        0
+        let mut file_system = Problem9::parse(input);
+
+        file_system
+            .compact_no_fragmentation()
+            .files
+            .iter()
+            .map(|file| {
+                file.clone()
+                    .locations
+                    .into_iter()
+                    .map(|location| location * file.id)
+                    .sum::<u64>()
+            })
+            .sum::<u64>() as u128
     }
 }
 
@@ -125,7 +157,7 @@ mod tests {
     #[test]
     fn should_produce_correct_answer_for_part_2() {
         let p = Problem9 {};
-        assert_eq!(p.part2(""), 0);
+        assert_eq!(p.part2("2333133121414131402"), 2858);
     }
     // 00...111...2...333.44.5555.6666.777.888899
     mod test_helper_functions {
@@ -191,6 +223,47 @@ mod tests {
                         locations: vec![1, 2, 6, 7, 8]
                     },
                 ]
+            )
+        }
+
+        #[test]
+        fn should_compact_filesystem_no_fragmentation() {
+            assert_eq!(
+                FileSystem {
+                    files: vec![
+                        File {
+                            id: 0,
+                            locations: vec![0]
+                        },
+                        File {
+                            id: 1,
+                            locations: vec![3, 4, 5]
+                        },
+                        File {
+                            id: 2,
+                            locations: vec![10, 11]
+                        },
+                    ],
+                    free_spaces: vec![1..3, 6..10],
+                }
+                    .compact_no_fragmentation(),
+                FileSystem {
+                    files: vec![
+                        File {
+                            id: 0,
+                            locations: vec![0]
+                        },
+                        File {
+                            id: 1,
+                            locations: vec![3, 4, 5]
+                        },
+                        File {
+                            id: 2,
+                            locations: vec![1, 2]
+                        },
+                    ],
+                    free_spaces: vec![6..10],
+                }
             )
         }
     }
