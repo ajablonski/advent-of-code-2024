@@ -54,7 +54,7 @@ impl Problem<u128> for Problem4 {
 }
 
 impl Problem4 {
-    fn check_horizontal(row: usize, column: usize, grid: &Grid, word: &str) -> u128 {
+    fn check_horizontal(row: usize, column: usize, grid: &Grid<char>, word: &str) -> u128 {
         let mut total = 0;
         let word_as_chars = word.chars().collect::<Vec<char>>();
         let word_length = word_as_chars.len();
@@ -82,7 +82,7 @@ impl Problem4 {
     fn check_diagonal(
         row: usize,
         column: usize,
-        grid: &Grid,
+        grid: &Grid<char>,
         word: &str,
     ) -> HashSet<DiagonalTypes> {
         let word_as_chars = word.chars().collect::<Vec<char>>();
@@ -124,7 +124,7 @@ impl Problem4 {
         match_types
     }
 
-    fn check_vertical(row: usize, column: usize, grid: &Grid, word: &str) -> u128 {
+    fn check_vertical(row: usize, column: usize, grid: &Grid<char>, word: &str) -> u128 {
         let word_as_chars = word.chars().collect::<Vec<char>>();
         let word_length = word_as_chars.len();
         let mut total = 0;

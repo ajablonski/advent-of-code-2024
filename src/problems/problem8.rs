@@ -42,7 +42,7 @@ impl Problem<u128> for Problem8 {
 }
 
 impl Problem8 {
-    fn find_frequencies_and_locations(grid: &Grid) -> HashMap<char, Vec<(i32, i32)>> {
+    fn find_frequencies_and_locations(grid: &Grid<char>) -> HashMap<char, Vec<(i32, i32)>> {
         grid.clone()
             .into_iter()
             .fold(HashMap::new(), |mut acc, cell| {
@@ -83,7 +83,7 @@ impl Problem8 {
 
     fn find_harmonic_antinodes(
         node_pair: ((i32, i32), (i32, i32)),
-        grid: &Grid,
+        grid: &Grid<char>,
     ) -> impl Iterator<Item = (i32, i32)> + use<'_> {
         let row_difference = node_pair.1 .0 - node_pair.0 .0;
 

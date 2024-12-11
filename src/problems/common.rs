@@ -2,13 +2,32 @@ use std::fmt;
 use std::fmt::Write;
 
 #[derive(Clone)]
-pub struct Grid {
-    pub lines: Vec<Vec<char>>,
+pub struct Grid<T>
+where
+    T: FromChar<T>,
+{
+    pub lines: Vec<Vec<T>>,
     pub row_count: usize,
     pub col_count: usize,
 }
 
-impl fmt::Debug for Grid {
+pub trait FromChar<T> {
+    fn from_char(c: char) -> Option<T>;
+}
+
+impl FromChar<char> for char {
+    fn from_char(c: char) -> Option<char> {
+        Some(c)
+    }
+}
+
+impl FromChar<u32> for u32 {
+    fn from_char(c: char) -> Option<u32> {
+        c.to_digit(10)
+    }
+}
+
+impl fmt::Debug for Grid<char> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_char('\n')?;
         self.lines.iter().for_each(|line| {
@@ -21,8 +40,11 @@ impl fmt::Debug for Grid {
     }
 }
 
-impl IntoIterator for Grid {
-    type Item = ((i32, i32), char);
+impl<T> IntoIterator for Grid<T>
+where
+    T: FromChar<T> + Clone
+{
+    type Item = ((i32, i32), T);
 
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
@@ -33,15 +55,18 @@ impl IntoIterator for Grid {
             .flat_map(|(row, line)| {
                 line.iter()
                     .enumerate()
-                    .map(move |(col, &c)| ((row as i32, col as i32), c))
+                    .map(move |(col, &ref c)| ((row as i32, col as i32), c.clone()))
             })
             .collect::<Vec<_>>()
             .into_iter()
     }
 }
 
-impl Grid {
-    fn from_lines(lines: Vec<Vec<char>>) -> Self {
+impl<T> Grid<T>
+where
+    T: FromChar<T>,
+{
+    fn from_lines(lines: Vec<Vec<T>>) -> Self {
         Self {
             row_count: lines.len(),
             col_count: lines[0].len(),
@@ -49,10 +74,14 @@ impl Grid {
         }
     }
 
-    pub fn from_string(input: &str) -> Self {
+    pub fn from_string (input: &str) -> Self {
         let lines = input
             .lines()
-            .map(|l| l.chars().collect::<Vec<char>>())
+            .map(|l| {
+                l.chars()
+                    .flat_map(|c| <T as FromChar<T>>::from_char(c))
+                    .collect::<Vec<T>>()
+            })
             .collect();
 
         Self::from_lines(lines)

@@ -38,7 +38,7 @@ pub struct AppDisplayState {
     pub rows: VecDeque<Line<'static>>,
     pub part_1_result: Option<u128>,
     pub part_2_result: Option<u128>,
-    pub grid: Option<Grid>
+    pub grid: Option<Grid<char>>
 }
 
 impl AppDisplayState {
@@ -60,7 +60,7 @@ impl AppDisplayState {
         }
     }
 
-    pub fn grid_update(g: Grid) -> Self {
+    pub fn grid_update(g: Grid<char>) -> Self {
         AppDisplayState {
             part_1_result: None,
             part_2_result: None,

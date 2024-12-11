@@ -19,7 +19,7 @@ enum Direction {
 
 #[derive(Clone)]
 struct GuardGrid {
-    grid: Grid,
+    grid: Grid<char>,
     guard_position: (i32, i32),
     guard_direction: Direction,
     obstacle_positions: HashSet<(i32, i32)>,
