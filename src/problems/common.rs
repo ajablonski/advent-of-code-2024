@@ -79,6 +79,7 @@ where
             .lines()
             .map(|l| {
                 l.chars()
+                    .filter(|c| !c.is_whitespace())
                     .flat_map(|c| <T as FromChar<T>>::from_char(c))
                     .collect::<Vec<T>>()
             })
