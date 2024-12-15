@@ -35,7 +35,7 @@ pub fn solve(problem_number: usize) -> Result<()> {
             rows: VecDeque::new(),
             grid: None
         })).unwrap();
-        tx.send(Event::Input(event::KeyCode::Char('q').into())).unwrap();
+        // tx.send(Event::Input(event::KeyCode::Char('q').into())).unwrap();
 
         let app_result = display::run(rx);
 

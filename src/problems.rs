@@ -1,6 +1,9 @@
 use crate::problems::problem1::Problem1;
 use crate::problems::problem10::Problem10;
 use crate::problems::problem11::Problem11;
+use crate::problems::problem12::Problem12;
+use crate::problems::problem13::Problem13;
+use crate::problems::problem14::Problem14;
 use crate::problems::problem2::Problem2;
 use crate::problems::problem3::Problem3;
 use crate::problems::problem4::Problem4;
@@ -11,8 +14,6 @@ use crate::problems::problem8::Problem8;
 use crate::problems::problem9::Problem9;
 use crate::Event;
 use std::sync::mpsc::Sender;
-use crate::problems::problem12::Problem12;
-use crate::problems::problem13::Problem13;
 
 pub mod common;
 pub mod problem1;
@@ -66,5 +67,6 @@ pub fn get_all_problems(tx: &Sender<Event>) -> Vec<Box<dyn Problem<u128>>> {
         Box::new(Problem11 {} ),
         Box::new(Problem12 {} ),
         Box::new(Problem13 {} ),
+        Box::new(Problem14 {tx: tx.clone()} ),
     ]
 }

@@ -66,7 +66,7 @@ impl<T> Grid<T>
 where
     T: FromChar<T>,
 {
-    fn from_lines(lines: Vec<Vec<T>>) -> Self {
+    pub fn from_lines(lines: Vec<Vec<T>>) -> Self {
         Self {
             row_count: lines.len(),
             col_count: lines[0].len(),
